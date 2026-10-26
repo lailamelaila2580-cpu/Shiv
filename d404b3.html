@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Screen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Poppins:wght@100..900&family=Fira+Code:wght@300..700&family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link id="theme-fonts" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+    <style type="text/tailwindcss">
+      @import "tailwindcss";
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-primary: var(--primary);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-secondary: var(--secondary);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-tertiary: var(--tertiary);
+        --color-tertiary-foreground: var(--tertiary-foreground);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-destructive: var(--destructive);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-card: var(--card);
+        --color-card-foreground: var(--card-foreground);
+        --color-popover: var(--popover);
+        --color-popover-foreground: var(--popover-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-ring: var(--ring);
+        --radius-sm: calc(var(--radius) - 4px);
+        --radius-md: calc(var(--radius) - 2px);
+        --radius-lg: var(--radius);
+        --font-family-sans: var(--font-sans);
+        --font-family-heading: var(--font-heading);
+        --font-family-mono: var(--font-mono);
+        /* Tailwind v4's font namespace is --font-*, NOT --font-family-*.
+         *
+         * Without this line the font-heading utility does not exist at all,
+         * so every h1–h6 the design prompt mandates (font-heading) silently
+         * inherited the body's font-sans. A user could set --font-heading a
+         * dozen times, watch the tool report success, and never see the
+         * typeface change — the "font applied but not reflected" report.
+         *
+         * font-sans and font-mono are Tailwind built-ins and already read
+         * :root, which is why only headings were broken. The fallback chain
+         * keeps themes that never set a heading font rendering the body face
+         * instead of nothing. */
+        --font-heading: var(--font-heading, var(--font-sans, ui-sans-serif, system-ui, sans-serif));
+      }
+
+      /* Every filled surface carries its own text colour.
+       *
+       * Without this, <div class="bg-accent"> inherits --foreground from
+       * <html> — a colour chosen to contrast the PAGE, not the accent fill. On
+       * a dark theme with a bright accent that renders near-white text on
+       * near-white (or near-black on near-black): the invisible text users
+       * report. Pairing each fill with its own foreground makes the readable
+       * result the default instead of something the model has to remember.
+       *
+       * These sit in @layer base deliberately. Any explicit text-* utility is
+       * in @layer utilities and therefore still wins, so an intentional colour
+       * choice is never overridden. The neutral surfaces (background, muted)
+       * are left out: --foreground is already guaranteed readable on those, and
+       * forcing --muted-foreground would wash out headings in muted panels.
+       */
+      @layer base {
+        .bg-card { color: var(--card-foreground); }
+        .bg-popover { color: var(--popover-foreground, var(--card-foreground)); }
+        .bg-primary { color: var(--primary-foreground); }
+        .bg-secondary { color: var(--secondary-foreground); }
+        .bg-accent { color: var(--accent-foreground, var(--foreground)); }
+        .bg-tertiary { color: var(--tertiary-foreground, var(--primary-foreground)); }
+        .bg-destructive { color: var(--destructive-foreground, var(--primary-foreground)); }
+      }
+      :root {
+        --background: #fff9f2;
+        --foreground: #111111;
+        --primary: #4a0404;
+        --primary-foreground: #ffffff;
+        --secondary: #f1ebe5;
+        --secondary-foreground: #111111;
+        --tertiary: #ffd700;
+        --muted: #f1ebe5;
+        --muted-foreground: #6D6A68;
+        --accent: #ffd700;
+        --destructive: #ef4444;
+        --card: #f8f9fa;
+        --card-foreground: #111111;
+        --border: #e0e0e0;
+        --input: #e0e0e0;
+        --ring: #4a0404;
+        --radius: 24px;
+        --font-sans: Poppins, sans-serif;
+        --font-heading: Inter, sans-serif;
+        --font-mono: JetBrains Mono, monospace;
+        --shadow-offset-x: 0;
+        --shadow-offset-y: 10;
+        --shadow-blur: 30;
+        --shadow-spread: -8;
+        --shadow-color: rgba(15, 23, 42, 0.12);
+        --accent-foreground: #111111;
+        --tertiary-foreground: #111111;
+        --destructive-foreground: #111111;
+        --primary-text: #4A0404;
+        --secondary-text: #78726D;
+        --tertiary-text: #936C00;
+        --accent-text: #936C00;
+        --destructive-text: #DA2D33;
+        }
+    </style>
+    <style>
+      .brand-gradient { background-image: linear-gradient(135deg, var(--primary), var(--accent)); }
+      .shadow-theme {
+        box-shadow:
+          calc(var(--shadow-offset-x, 0) * 1px) calc(var(--shadow-offset-y, 10) * 1px)
+          calc(var(--shadow-blur, 30) * 1px) calc(var(--shadow-spread, -8) * 1px)
+          var(--shadow-color, rgba(15, 23, 42, 0.12));
+      }
+
+      /* Brand colours used as TEXT resolve to a legibility-adjusted variant.
+       *
+       * --primary and friends are tuned to look right as FILLS; painted as text
+       * on the page they are routinely too light — a #16A34A "+8.4%" on a white
+       * card measures 3.3:1. The --*-text tokens are the same hue and chroma
+       * with lightness nudged just far enough to clear AA on the page and card
+       * surfaces, so fills keep the exact brand colour while text becomes
+       * readable.
+       *
+       * This block is intentionally UNLAYERED: unlayered declarations outrank
+       * every cascade layer, so these beat Tailwind's own text-* utilities. The
+       * var() fallbacks leave documents that predate the derived tokens
+       * rendering exactly as before.
+       */
+      .text-primary { color: var(--primary-text, var(--primary)); }
+      .text-secondary { color: var(--secondary-text, var(--secondary)); }
+      .text-tertiary { color: var(--tertiary-text, var(--tertiary)); }
+      .text-accent { color: var(--accent-text, var(--accent)); }
+      .text-destructive { color: var(--destructive-text, var(--destructive)); }
+    </style>
+  </head>
+  <body>
+<div class="min-h-screen w-full bg-background flex flex-col relative">
+<section class="header-spacer-v3 h-[108px] bg-background text-foreground"></section>
+<section class="bg-primary text-primary-foreground h-[691px] overflow-hidden">
+  <div class="mx-auto flex h-full max-w-[1380px] items-center gap-8 px-6 py-10">
+    <div class="w-[40%] self-stretch pt-1">
+      <div class="inline-flex rounded-full border border-border bg-card/10 px-4 py-2 text-[11px] font-bold tracking-[0.08em] text-primary-foreground">
+        SIDDHA PEETH NALKHEDA <span class="hidden lg:inline">&nbsp;• AUTHENTIC VEDIC RITUALS</span>
+      </div>
+
+      <h1 class="mt-4 text-[42px] font-bold leading-[1.18] tracking-tight">
+        Maa Baglamukhi Online<br>
+        <span class="text-primary-foreground">Puja &amp; Hawan Service</span>
+      </h1>
+
+      <p class="mt-4 max-w-[510px] text-[13px] leading-[1.45]">
+        Maa Baglamukhi Guru is an authentic Vedic ritual service based at <strong class="font-bold">Maa Baglamukhi Siddha Peeth</strong> in Nalkheda.<br><br>
+        The platform offers Baglamukhi Havan, Puja, and Anushthan services under the guidance of <strong class="font-bold">Acharya Pandit Vishnu Sharma</strong>.
+      </p>
+
+      <div class="mt-5 max-w-[520px] rounded-lg border border-border bg-card/10 px-3 py-2 text-[12px] leading-[1.4]">
+        <p class="font-bold text-primary-foreground">🪔 Experience Maa Baglamukhi Puja very easily</p>
+        <p class="mt-1">Are you unable to visit Maa Baglamukhi Mandir? Don't worry! We bring the blessings of Nalkheda Siddha Peeth to your home through authentic online Havan and Anushthan.</p>
+      </div>
+
+      <div class="mt-4 border-l-4 border-border bg-card/10 px-3 py-2 text-[12px] font-semibold italic">
+        <p>“When courts, medicine, and logic fail – Maa Baglamukhi's grace wins.”</p>
+      </div>
+
+      <div class="mt-4 flex items-center gap-5">
+        <div class="flex items-center gap-2">
+          <div class="flex text-muted-foreground">
+            <iconify-icon icon="lucide:star" class="text-[15px]"></iconify-icon>
+            <iconify-icon icon="lucide:star" class="text-[15px]"></iconify-icon>
+            <iconify-icon icon="lucide:star" class="text-[15px]"></iconify-icon>
+            <iconify-icon icon="lucide:star" class="text-[15px]"></iconify-icon>
+            <iconify-icon icon="lucide:star-half" class="text-[15px]"></iconify-icon>
+          </div>
+          <span class="text-lg font-bold">4.8/5</span>
+        </div>
+        <div class="flex -space-x-2">
+          <img src="https://maabaglamukhi.guru/images/devotee-1.png" alt="Devotee" width="20" height="20" class="h-8 w-8 rounded-full border-2 border-primary object-cover">
+          <img src="https://maabaglamukhi.guru/images/devotee-2.png" alt="Devotee" width="20" height="20" class="h-8 w-8 rounded-full border-2 border-primary object-cover">
+          <img src="https://maabaglamukhi.guru/images/devotee-3.png" alt="Devotee" width="20" height="20" class="h-8 w-8 rounded-full border-2 border-primary object-cover">
+          <img src="https://maabaglamukhi.guru/images/devotee-4.png" alt="Devotee" width="20" height="20" class="h-8 w-8 rounded-full border-2 border-primary object-cover">
+        </div>
+      </div>
+
+      <div class="mt-5 flex max-w-[475px] divide-x divide-border">
+        <div class="flex w-1/3 items-start gap-2 pr-4">
+          <iconify-icon icon="lucide:shield-check" class="mt-1 text-lg text-muted-foreground"></iconify-icon>
+          <span class="text-[14px] font-bold leading-[1.15]">Authentic<br>Rituals</span>
+        </div>
+        <div class="flex w-1/3 items-start gap-2 px-4">
+          <iconify-icon icon="lucide:map-pin" class="mt-1 text-lg text-muted-foreground"></iconify-icon>
+          <span class="text-[14px] font-bold leading-[1.15]">Siddha Peeth<br>Nalkheda</span>
+        </div>
+        <div class="flex w-1/3 items-start gap-2 pl-4">
+          <iconify-icon icon="lucide:lock-keyhole" class="mt-1 text-lg text-muted-foreground"></iconify-icon>
+          <span class="text-[14px] font-bold leading-[1.15]">Confidential<br>&amp; Secure</span>
+        </div>
+      </div>
+
+      <div class="mt-9 flex flex-wrap gap-3">
+        <a href="/booking" class="inline-flex items-center rounded-xl bg-muted px-5 py-3 text-[13px] font-bold text-foreground shadow-sm">
+          <iconify-icon icon="lucide:calendar-check" class="mr-2 text-base"></iconify-icon>BOOK YOUR PUJA
+        </a>
+        <a href="https://wa.me/917389567650" class="inline-flex items-center rounded-xl border border-border bg-card/15 px-5 py-3 text-[13px] font-bold text-primary-foreground shadow-sm">
+          <iconify-icon icon="lucide:message-circle" class="mr-2 text-base"></iconify-icon>CONSULT ACHARYA
+        </a>
+      </div>
+    </div>
+
+    <div class="hidden flex-1 lg:block"></div>
+
+    <div class="w-[385px] shrink-0">
+      <div class="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-xl">
+        <div>
+          <h2 class="text-[25px] font-bold leading-none">Book Your Puja</h2>
+          <div class="mt-2 h-0.5 w-12 bg-muted"></div>
+        </div>
+
+        <form action="" method="POST" class="mt-5 space-y-2.5">
+          <input type="hidden" name="universal_form_submit">
+          <input type="hidden" name="page_source">
+          <input type="text" name="website_url_hp" class="hidden">
+
+          <div>
+            <label class="mb-1 block text-[11px] font-bold tracking-[0.08em]">FULL NAME</label>
+            <div class="flex h-11 overflow-hidden rounded-lg border border-border bg-background">
+              <span class="flex w-12 items-center justify-center border-r border-border bg-muted text-muted-foreground"><iconify-icon icon="lucide:user"></iconify-icon></span>
+              <input type="text" name="full_name" placeholder="Enter your full name" class="w-full bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground">
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-[11px] font-bold tracking-[0.08em]">EMAIL ADDRESS</label>
+            <div class="flex h-11 overflow-hidden rounded-lg border border-border bg-background">
+              <span class="flex w-12 items-center justify-center border-r border-border bg-muted text-muted-foreground"><iconify-icon icon="lucide:mail"></iconify-icon></span>
+              <input type="email" name="email" placeholder="Enter your email address" class="w-full bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground">
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-[11px] font-bold tracking-[0.08em]">PHONE NUMBER</label>
+            <div class="flex h-11 overflow-hidden rounded-lg border border-border bg-background">
+              <span class="flex w-14 items-center justify-center gap-1 border-r border-border bg-muted text-xs font-bold text-foreground">🇮🇳 +91</span>
+              <input type="tel" name="phone" placeholder="+91 00000 00000" class="w-full bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground">
+            </div>
+            <input type="hidden" name="full_phone">
+          </div>
+
+          <div>
+            <label class="mb-1 block text-[11px] font-bold tracking-[0.08em]">SELECT YOUR ISSUE</label>
+            <div class="flex h-11 overflow-hidden rounded-lg border border-border bg-background">
+              <span class="flex w-12 items-center justify-center border-r border-border bg-muted text-muted-foreground"><iconify-icon icon="lucide:layout-grid"></iconify-icon></span>
+              <select name="subject" class="w-full bg-transparent px-3 text-sm outline-none">
+                <option>❓ General Inquiry</option>
+                <option>⚖️ Legal &amp; Court Matters</option>
+                <option>📈 Wealth &amp; Career</option>
+                <option>🛡️ Spiritual Protection</option>
+                <option>❤️ Marriage &amp; Relationship</option>
+                <option>🏥 Health &amp; Wellness</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1 block text-[11px] font-bold tracking-[0.08em]">PROBLEM DETAILS</label>
+            <div class="flex h-11 overflow-hidden rounded-lg border border-border bg-background">
+              <span class="flex w-12 items-center justify-center border-r border-border bg-muted text-muted-foreground"><iconify-icon icon="lucide:square-pen"></iconify-icon></span>
+              <textarea name="message" placeholder="Describe your issue..." class="h-full w-full resize-none bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"></textarea>
+            </div>
+          </div>
+
+          <div class="hidden"><iconify-icon icon="lucide:circle-check"></iconify-icon>Your message has been sent!Pandit Ji will review and respond shortly.</div>
+          <div class="hidden"><iconify-icon icon="lucide:circle-x"></iconify-icon>Submission failed.Please try again or call +91 73895 67650.</div>
+
+          <button type="submit" class="mt-1 flex h-12 w-full items-center justify-center rounded-xl bg-primary text-[13px] font-bold text-primary-foreground shadow-sm">
+            <span><iconify-icon icon="lucide:calendar-check" class="mr-2 align-middle text-base"></iconify-icon>CONFIRM BOOKING</span>
+            <span class="hidden"><iconify-icon icon="lucide:loader-circle"></iconify-icon>Sending...</span>
+          </button>
+
+          <div class="pt-1 text-center text-[11px] text-card-foreground">
+            <iconify-icon icon="lucide:lock-keyhole" class="mr-1 align-middle"></iconify-icon>Your information is safe with us.
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="bg-background text-foreground pt-12 pb-12">
+  <div class="mx-auto max-w-6xl px-6">
+    <div class="text-center">
+      <h2 class="font-serif text-[27px] font-bold leading-tight text-primary">The Trust of Maa Baglamukhi Peeth</h2>
+      <p class="mt-3 text-sm">A symbol of Vedic lineage, authentic rituals, and scientific spiritual practices.</p>
+      <div class="mx-auto mt-3 h-1 w-15 rounded-full bg-primary"></div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div class="h-40 rounded-2xl border border-border bg-card px-5 shadow-sm">
+        <div class="flex h-full items-center gap-4">
+          <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted text-primary">
+            <iconify-icon icon="fa6-brands:google" class="text-2xl"></iconify-icon>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1 text-primary">
+              <iconify-icon icon="lucide:star" class="fill-current text-base"></iconify-icon>
+              <iconify-icon icon="lucide:star" class="fill-current text-base"></iconify-icon>
+              <iconify-icon icon="lucide:star" class="fill-current text-base"></iconify-icon>
+              <iconify-icon icon="lucide:star" class="fill-current text-base"></iconify-icon>
+              <iconify-icon icon="lucide:star" class="fill-current text-base"></iconify-icon>
+            </div>
+            <span class="mt-1 block text-2xl font-bold leading-none">4.8/5</span>
+            <span class="mt-2 block text-sm font-semibold leading-none">Google Reviews</span>
+            <span class="mt-2 block rounded-md bg-muted px-2 py-1 text-[11px] font-medium uppercase leading-none tracking-wide text-foreground">Verified Devotee Feedback</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-40 rounded-2xl border border-border bg-card px-5 shadow-sm">
+        <div class="flex h-full items-center gap-4">
+          <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted text-primary">
+            <iconify-icon icon="lucide:award" class="text-2xl"></iconify-icon>
+          </div>
+          <div>
+            <span class="inline-block rounded-sm bg-muted px-2 py-1 text-[10px] font-semibold uppercase leading-none text-primary">✓ Authenticated</span>
+            <span class="mt-2 block text-2xl font-bold leading-none">26+</span>
+            <span class="mt-2 block text-sm font-semibold leading-none">Years Exp.</span>
+            <span class="mt-2 block text-xs leading-none text-card-foreground">Vedic Lineage</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-40 rounded-2xl border border-border bg-card px-5 shadow-sm">
+        <div class="flex h-full items-center gap-4">
+          <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted text-primary">
+            <iconify-icon icon="lucide:globe-2" class="text-2xl"></iconify-icon>
+          </div>
+          <div>
+            <span class="inline-block rounded-sm bg-muted px-2 py-1 text-[10px] font-semibold uppercase leading-none text-primary">🌐 Worldwide</span>
+            <span class="mt-2 block text-2xl font-bold leading-none">50+</span>
+            <span class="mt-2 block text-sm font-semibold leading-none">Countries</span>
+            <span class="mt-2 block text-xs leading-none text-card-foreground">Global Presence</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-40 rounded-2xl border border-border bg-card px-5 shadow-sm">
+        <div class="flex h-full items-center gap-4">
+          <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted text-primary">
+            <iconify-icon icon="lucide:shield-check" class="text-2xl"></iconify-icon>
+          </div>
+          <div>
+            <span class="inline-block rounded-sm bg-muted px-2 py-1 text-[10px] font-semibold uppercase leading-none text-primary">🛡️ Verified</span>
+            <span class="mt-2 block text-2xl font-bold leading-none">100%</span>
+            <span class="mt-2 block text-sm font-semibold leading-none">Secure</span>
+            <span class="mt-2 block text-xs leading-none text-card-foreground">Sankalp Rituals</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="h-[730px] w-full overflow-hidden bg-background text-foreground">
+  <div class="flex h-full w-full flex-col">
+    <span class="inline-flex items-center gap-2 pt-1 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+      <iconify-icon icon="lucide:book-open" class="text-sm"></iconify-icon>
+      Vedic Lineage Since 2000
+    </span>
+
+    <h2 class="mt-7 font-serif text-4xl font-bold leading-none text-primary">
+      About Baglamukhi Guru
+    </h2>
+
+    <h3 class="mt-3 font-serif text-lg italic leading-none text-foreground">
+      (Acharya Pandit Vishnu Sharma)
+    </h3>
+
+    <p class="mt-9 text-base leading-[1.85]">
+      I amAcharya Pandit Vishnu Sharma, a dedicated practitioner and the principal Acharya at the historic Maa Baglamukhi Siddha Peeth in Nalkheda. With over26+ years of intense spiritual practiceand a deep lineage in Vedic rituals, I have guided thousands of devotees from across the globe to overcome insurmountable life obstacles through the precise application of 'Brahmastra Vidya'.
+    </p>
+
+    <p class="mt-4 text-base leading-[1.85]">
+      My expertise lies in the authentic performance ofSankalp-based rituals. I believe that a puja without a clear sacred vow is like an arrow without a target. At Nalkheda, we perform every Havan and Anushthan with absolute purity, adhering to the strict Vedic protocols of Pitambara Sadhana-ensuring that the divine 'Stambhan' energy is channeled correctly for your specific challenge.
+    </p>
+
+    <div class="mt-6 rounded-r-xl border border-border border-l-4 border-l-primary bg-card px-6 py-5">
+      <p class="text-base italic leading-[1.75] text-card-foreground">
+        "My mission is not just to perform a ritual, but to reconnect you with the Mother's infinite protection. In the sacred atmosphere of Nalkheda, we turn the 'impossible' into 'divinely possible' through faith and Vedic precision."
+      </p>
+    </div>
+
+    <div class="mt-6 flex items-center gap-4">
+      <a href="tel:+917389567650" class="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground">
+        <iconify-icon icon="lucide:phone-call" class="text-lg"></iconify-icon>
+        Call Now
+      </a>
+      <a href="https://wa.me/917389567650?text=Namaste%20Acharya%20Ji%2C%20I%20need%20your%20guidance" target="_blank" class="inline-flex h-14 items-center justify-center gap-3 rounded-full border border-border bg-card px-7 text-sm font-bold text-primary">
+        <iconify-icon icon="lucide:message-circle" class="text-lg"></iconify-icon>
+        Direct Consultation
+      </a>
+    </div>
+
+    <div class="mt-5">
+      <a href="/booking" class="flex min-h-[73px] w-full items-center gap-4 rounded-xl border border-dashed border-border bg-card px-5 text-primary">
+        <iconify-icon icon="lucide:calendar-check" class="shrink-0 text-xl"></iconify-icon>
+        <span class="flex flex-col text-left">
+          <span class="text-sm font-bold leading-5">Book Your Sacred SlotPay only after puja complete - No advance payment</span>
+        </span>
+        <iconify-icon icon="lucide:arrow-right" class="ml-auto shrink-0 text-xl"></iconify-icon>
+      </a>
+    </div>
+  </div>
+</section>
+<section class="h-[274px] bg-background text-foreground">
+  <div class="h-full px-5">
+    <div class="flex flex-col items-center">
+      <div class="pt-0 text-center text-lg font-bold uppercase tracking-wider text-primary">
+        Specialized Vedic Expertise
+      </div>
+      <div class="mt-2 h-0.5 w-12 bg-primary"></div>
+    </div>
+    <div class="mt-7 grid grid-cols-4 gap-5">
+      <div class="flex h-[208px] flex-col items-center rounded-xl border border-border bg-card px-5 pt-9 text-center">
+        <div class="flex h-8 items-center justify-center text-primary">
+          <iconify-icon icon="lucide:book-open" class="text-3xl"></iconify-icon>
+        </div>
+        <strong class="mt-7 text-base font-bold text-primary">1.25 Lakh Anushthan</strong>
+        <span class="mt-3 text-sm leading-5 text-card-foreground">Intensive 11-day spiritual interventions for critical life issues.</span>
+      </div>
+      <div class="flex h-[208px] flex-col items-center rounded-xl border border-border bg-card px-5 pt-9 text-center">
+        <div class="flex h-8 items-center justify-center text-primary">
+          <iconify-icon icon="lucide:flame" class="text-3xl"></iconify-icon>
+        </div>
+        <strong class="mt-7 text-base font-bold text-primary">Siddha Havan Rituals</strong>
+        <span class="mt-3 text-sm leading-5 text-card-foreground">Using authentic medicinal samagris and precise Vedic chanting.</span>
+      </div>
+      <div class="flex h-[208px] flex-col items-center rounded-xl border border-border bg-card px-5 pt-9 text-center">
+        <div class="flex h-8 items-center justify-center text-primary">
+          <iconify-icon icon="lucide:star" class="text-3xl"></iconify-icon>
+        </div>
+        <strong class="mt-7 text-base font-bold text-primary">Karmic Recalibration</strong>
+        <span class="mt-3 text-sm leading-5 text-card-foreground">Astrological guidance to identify and remove root cause problems.</span>
+      </div>
+      <div class="flex h-[208px] flex-col items-center rounded-xl border border-border bg-card px-5 pt-9 text-center">
+        <div class="flex h-8 items-center justify-center text-primary">
+          <iconify-icon icon="lucide:microphone" class="text-3xl"></iconify-icon>
+        </div>
+        <strong class="mt-7 text-base font-bold text-primary">Vaak Siddhi Consulting</strong>
+        <span class="mt-3 text-sm leading-5 text-card-foreground">Empowering your speech and decisions with spiritual clarity.</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="how-help-section" class="relative h-[565px] overflow-hidden bg-background py-20 text-foreground">
+  <img src="https://maabaglamukhi.guru/images/doodle1.png" alt="" class="absolute inset-0 h-full w-full object-cover opacity-30">
+  <div class="relative mx-auto max-w-[1176px]">
+    <div class="mb-[62px]">
+      <h2 class="m-0 text-[34px] font-bold leading-none">How We Can Help</h2>
+      <div class="mt-4 h-[3px] w-11 bg-primary"></div>
+    </div>
+    <div class="overflow-hidden">
+      <div class="flex w-max -translate-x-[100px] gap-6">
+        <div class="w-[420px] shrink-0 rounded-xl bg-card shadow-sm">
+          <div class="p-[30px] text-left">
+            <iconify-icon icon="lucide:badge-check" class="text-[31px] text-primary"></iconify-icon>
+            <h3 class="mt-7 text-[18px] font-bold">Certified Pandits</h3>
+            <p class="mt-6 text-[15px] leading-6">Acharya Pandit Vishnu Sharma performs every Puja with absolute Vedic purity and vidhi vidhan.</p>
+          </div>
+        </div>
+        <div class="w-[420px] shrink-0 rounded-xl bg-card shadow-sm">
+          <div class="p-[30px] text-left">
+            <iconify-icon icon="lucide:calendar-check" class="text-[31px] text-primary"></iconify-icon>
+            <h3 class="mt-7 text-[18px] font-bold">Easy Booking</h3>
+            <p class="mt-6 text-[15px] leading-6">Book your customized Havans and specific rituals in just a few clicks-completely hassle-free.</p>
+          </div>
+        </div>
+        <div class="w-[420px] shrink-0 rounded-xl bg-card shadow-sm">
+          <div class="p-[30px] text-left">
+            <iconify-icon icon="lucide:indian-rupee" class="text-[31px] text-primary"></iconify-icon>
+            <h3 class="mt-7 text-[18px] font-bold">Fair Price</h3>
+            <p class="mt-6 text-[15px] leading-6">Transparent pricing structures for every complex service with no hidden costs or conditions.</p>
+          </div>
+        </div>
+        <div class="w-[420px] shrink-0 rounded-xl bg-card shadow-sm">
+          <div class="p-[30px] text-left">
+            <iconify-icon icon="lucide:video" class="text-[31px] text-primary"></iconify-icon>
+            <h3 class="mt-7 text-[18px] font-bold">Recorded Puja</h3>
+            <p class="mt-6 text-[15px] leading-6">Get a high-quality complete live or recorded archive if you cannot attend the ritual physically.</p>
+          </div>
+        </div>
+        <div class="w-[420px] shrink-0 rounded-xl bg-card shadow-sm">
+          <div class="p-[30px] text-left">
+            <iconify-icon icon="lucide:package" class="text-[31px] text-primary"></iconify-icon>
+            <h3 class="mt-7 text-[18px] font-bold">Prasad Delivery</h3>
+            <p class="mt-6 text-[15px] leading-6">Sacred and hygienically packed Prasad delivered directly to your doorstep for divine peace.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="h-[343px] bg-background text-foreground">
+  <div class="mx-auto flex h-full max-w-[820px] flex-col items-center px-5 text-center">
+    <div class="inline-flex items-center gap-2 rounded-full border border-border px-6 py-2 text-[11px] font-bold tracking-[0.16em] text-primary">
+      <span class="size-2 rounded-full bg-primary"></span>
+      SHARDIYA NAVRATRI 2026 · SANKALP BOOKINGS OPEN
+    </div>
+
+    <h2 class="mt-6 max-w-[820px] font-serif text-[46px] font-bold leading-[1.32] tracking-tight text-foreground">
+      Receive Maa Durga's 9 Manifestation Blessings at Siddhapeeth
+    </h2>
+
+    <div class="mt-5 flex items-center justify-center gap-3 text-primary">
+      <div class="h-px w-14 bg-primary"></div>
+      <iconify-icon icon="lucide:sun" class="text-base"></iconify-icon>
+      <div class="h-px w-14 bg-primary"></div>
+    </div>
+
+    <p class="mt-6 max-w-[810px] text-[16px] leading-7 text-foreground">
+      Participate in sacred day-by-day Vedic Pujas dedicated to each Navdurga swaroop. Book personalized Sankalp with your Name &amp; Gotra performed live by verified Acharyas at Maa Baglamukhi Siddhapeeth, Nalkheda.
+    </p>
+
+    <div class="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-[13px] leading-4 text-card-foreground">
+      <iconify-icon icon="lucide:clock-3" class="shrink-0 text-primary"></iconify-icon>
+      <span><strong>Authentic Daily Quota:</strong>Strictly 21 personalized Gotra Sankalps performed per day to preserve Vedic purity</span>
+    </div>
+  </div>
+</section>
+<section class="bg-background text-foreground">
+  <div class="mx-auto flex h-[35px] w-full max-w-[1176px] items-center justify-between gap-2">
+    <div class="flex h-[35px] flex-1 items-center justify-center gap-2 rounded-full bg-primary px-3 text-xs font-medium whitespace-nowrap text-primary-foreground">
+      <iconify-icon icon="lucide:user-check" class="text-sm"></iconify-icon>
+      <span>Personal Name &amp; Gotra Sankalp</span>
+    </div>
+    <div class="flex h-[35px] flex-1 items-center justify-center gap-2 rounded-full bg-primary px-3 text-xs font-medium whitespace-nowrap text-primary-foreground">
+      <iconify-icon icon="lucide:video" class="text-sm"></iconify-icon>
+      <span>Live Puja Video Proof Shared</span>
+    </div>
+    <div class="flex h-[35px] flex-1 items-center justify-center gap-2 rounded-full bg-primary px-3 text-xs font-medium whitespace-nowrap text-primary-foreground">
+      <iconify-icon icon="lucide:gift" class="text-sm"></iconify-icon>
+      <span>Abhimantrit Prasad to Doorstep</span>
+    </div>
+    <div class="flex h-[35px] flex-1 items-center justify-center gap-2 rounded-full bg-primary px-3 text-xs font-medium whitespace-nowrap text-primary-foreground">
+      <iconify-icon icon="lucide:shield-check" class="text-sm"></iconify-icon>
+      <span>100% Vedic Siddhapeeth Vidhi</span>
+    </div>
+  </div>
+</section>
+<section class="bg-background text-foreground py-2.5">
+  <div class="mx-auto grid max-w-[1176px] grid-cols-5 gap-x-5 gap-y-8">
+    <a href="/shardiya-navratri/day-1-maa-shailputri" class="relative flex h-[432px] flex-col items-center rounded-t-[5rem] rounded-b-xl bg-card px-3 pb-6 pt-7 text-center shadow-md">
+      <div class="absolute -top-3 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow">1</div>
+      <div class="text-sm font-bold tracking-wide">DAY 1</div>
+      <div class="mt-2 flex h-[158px] items-center justify-center"><img src="https://maabaglamukhi.guru/navratri/1.webp" alt="Maa Shailputri" class="h-[155px] w-[155px] object-contain"></div>
+      <div class="mt-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-bold tracking-wide text-primary-foreground">SHAILPUTRI</div>
+      <div class="mt-2 text-xs font-semibold">11 October 2026<span class="mt-1 block font-normal">Pratipada</span></div>
+      <div class="mt-3 w-full border-t border-dashed border-border pt-2 text-xs font-bold"><iconify-icon icon="lucide:shield-check" class="mr-1 align-middle text-primary"></iconify-icon>STABILITY</div>
+      <div class="mt-3 text-xs font-semibold"><iconify-icon icon="lucide:circle-check" class="mr-1 align-middle text-green-600"></iconify-icon>Name &amp; Gotra Sankalp</div>
+      <div class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-xs font-bold tracking-wide text-primary-foreground">Book Puja<iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon></div>
+    </a>
+    <a href="/shardiya-navratri/day-2-maa-brahmacharini" class="relative flex h-[432px] flex-col items-center rounded-t-[5rem] rounded-b-xl bg-card px-3 pb-6 pt-7 text-center shadow-md">
+      <div class="absolute -top-3 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow">2</div>
+      <div class="text-sm font-bold tracking-wide">DAY 2</div>
+      <div class="mt-2 flex h-[158px] items-center justify-center"><img src="https://maabaglamukhi.guru/navratri/2.webp" alt="Maa Brahmacharini" class="h-[155px] w-[155px] object-contain"></div>
+      <div class="mt-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-bold tracking-wide text-primary-foreground">BRAHMACHARINI</div>
+      <div class="mt-2 text-xs font-semibold">12 October 2026<span class="mt-1 block font-normal">Dwitiya</span></div>
+      <div class="mt-3 w-full border-t border-dashed border-border pt-2 text-xs font-bold"><iconify-icon icon="lucide:flower-2" class="mr-1 align-middle text-primary"></iconify-icon>DISCIPLINE</div>
+      <div class="mt-3 text-xs font-semibold"><iconify-icon icon="lucide:circle-check" class="mr-1 align-middle text-green-600"></iconify-icon>Name &amp; Gotra Sankalp</div>
+      <div class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-xs font-bold tracking-wide text-primary-foreground">Book Puja<iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon></div>
+    </a>
+    <a href="/shardiya-navratri/day-3-maa-chandraghanta" class="relative flex h-[432px] flex-col items-center rounded-t-[5rem] rounded-b-xl bg-card px-3 pb-6 pt-7 text-center shadow-md">
+      <div class="absolute -top-3 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow">3</div>
+      <div class="text-sm font-bold tracking-wide">DAY 3</div>
+      <div class="mt-2 flex h-[158px] items-center justify-center"><img src="https://maabaglamukhi.guru/navratri/3.webp" alt="Maa Chandraghanta" class="h-[155px] w-[155px] object-contain"></div>
+      <div class="mt-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-bold tracking-wide text-primary-foreground">CHANDRAGHANTA</div>
+      <div class="mt-2 text-xs font-semibold">13 October 2026<span class="mt-1 block font-normal">Tritiya</span></div>
+      <div class="mt-3 w-full border-t border-dashed border-border pt-2 text-xs font-bold"><iconify-icon icon="lucide:bell" class="mr-1 align-middle text-primary"></iconify-icon>COURAGE</div>
+      <div class="mt-3 text-xs font-semibold"><iconify-icon icon="lucide:circle-check" class="mr-1 align-middle text-green-600"></iconify-icon>Name &amp; Gotra Sankalp</div>
+      <div class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-xs font-bold tracking-wide text-primary-foreground">Book Puja<iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon></div>
+    </a>
+    <a href="/shardiya-navratri/day-4-maa-kushmanda" class="relative flex h-[432px] flex-col items-center rounded-t-[5rem] rounded-b-xl bg-card px-3 pb-6 pt-7 text-center shadow-md">
+      <div class="absolute -top-3 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow">4</div>
+      <div class="text-sm font-bold tracking-wide">DAY 4</div>
+      <div class="mt-2 flex h-[158px] items-center justify-center"><img src="https://maabaglamukhi.guru/navratri/4.webp" alt="Maa Kushmanda" class="h-[155px] w-[155px] object-contain"></div>
+      <div class="mt-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-bold tracking-wide text-primary-foreground">KUSHMANDA</div>
+      <div class="mt-2 text-xs font-semibold">14 October 2026<span class="mt-1 block font-normal">Chaturthi</span></div>
+      <div class="mt-3 w-full border-t border-dashed border-border pt-2 text-xs font-bold"><iconify-icon icon="lucide:sun" class="mr-1 align-middle text-primary"></iconify-icon>ENERGY</div>
+      <div class="mt-3 text-xs font-semibold"><iconify-icon icon="lucide:circle-check" class="mr-1 align-middle text-green-600"></iconify-icon>Name &amp; Gotra Sankalp</div>
+      <div class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-xs font-bold tracking-wide text-primary-foreground">Book Puja<iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon></div>
+    </a>
+    <a href="/shardiya-navratri/day-5-maa-skandamata" class="relative flex h-[432px] flex-col items-center rounded-t-[5rem] rounded-b-xl bg-card px-3 pb-6 pt-7 text-center shadow-md">
+      <div class="absolute -top-3 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow">5</div>
+      <div class="text-sm font-bold tracking-wide">DAY 5</div>
+      <div class="mt-2 flex h-[158px] items-center justify-center"><img src="https://maabaglamukhi.guru/navratri/5.webp" alt="Maa Skandamata" class="h-[155px] w-[155px] object-contain"></div>
+      <div class="mt-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-bold tracking-wide text-primary-foreground">SKANDAMATA</div>
+      <div class="mt-2 text-xs font-semibold">15 October 2026<span class="mt-1 block font-normal">Panchami</span></div>
+      <div class="mt-3 w-full border-t border-dashed border-border pt-2 text-xs font-bold"><iconify-icon icon="lucide:users" class="mr-1 align-middle text-primary"></iconify-icon>NURTURING</div>
+      <div class="mt-3 text-xs font-semibold"><iconify-icon icon="lucide:circle-check" class="mr-1 align-middle text-green-600"></iconify-icon>Name &amp; Gotra Sankalp</div>
+      <div class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-xs font-bold tracking-wide text-primary-foreground">Book Puja<iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon></div>
+    </a>
+    <a href="/shardiya-navratri/day-6-maa-katyayani" class="relative col-start-1 flex h-[432px] flex-col items-center rounded-t-[5rem] rounded-b-xl bg-card px-3 pb-6 pt-7 text-center shadow-md">
+      <div class="absolute -top-3 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow">6</div>
+      <div class="text-sm font-bold tracking-wide">DAY 6</div>
+      <div class="mt-2 flex h-[158px] items-center justify-center"><img src="https://maabaglamukhi.guru/navratri/6.webp" alt="Maa Katyayani" class="h-[155px] w-[155px] object-contain"></div>
+      <div class="mt-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-bold tracking-wide text-primary-foreground">KATYAYANI</div>
+      <div class="mt-2 text-xs font-semibold">16 October 2026<span class="mt-1 block font-normal">Shashti</span></div>
+      <div class="mt-3 w-full border-t border-dashed border-border pt-2 text-xs font-bold"><iconify-icon icon="lucide:git-fork" class="mr-1 align-middle text-primary"></iconify-icon>STRENGTH</div>
+      <div class="mt-3 text-xs font-semibold"><iconify-icon icon="lucide:circle-check" class="mr-1 align-middle text-green-600"></iconify-icon>Name &amp; Gotra Sankalp</div>
+      <div class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-xs font-bold tracking-wide text-primary-foreground">Book Puja<iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon></div>
+    </a>
+    <a href="/shardiya-navratri/day-7-maa-kalaratri" class="relative flex h-[432px] flex-col items-center rounded-t-[5rem] rounded-b-xl bg-card px-3 pb-6 pt-7 text-center shadow-md">
+      <div class="absolute -top-3 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow">7</div>
+      <div class="text-sm font-bold tracking-wide">DAY 7</div>
+      <div class="mt-2 flex h-[158px] items-center justify-center"><img src="https://maabaglamukhi.guru/navratri/7.webp" alt="Maa Kalaratri" class="h-[155px] w-[155px] object-contain"></div>
+      <div class="mt-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-bold tracking-wide text-primary-foreground">KALARATRI</div>
+      <div class="mt-2 text-xs font-semibold">17 October 2026<span class="mt-1 block font-normal">Saptami</span></div>
+      <div class="mt-3 w-full border-t border-dashed border-border pt-2 text-xs font-bold"><iconify-icon icon="lucide:moon" class="mr-1 align-middle text-primary"></iconify-icon>PROTECTION</div>
+      <div class="mt-3 text-xs font-semibold"><iconify-icon icon="lucide:circle-check" class="mr-1 align-middle text-green-600"></iconify-icon>Name &amp; Gotra Sankalp</div>
+      <div class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-xs font-bold tracking-wide text-primary-foreground">Book Puja<iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon></div>
+    </a>
+    <a href="/shardiya-navratri/day-8-maa-mahagauri" class="relative flex h-[432px] flex-col items-center rounded-t-[5rem] rounded-b-xl bg-card px-3 pb-6 pt-7 text-center shadow-md">
+      <div class="absolute -top-3 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow">8</div>
+      <div class="text-sm font-bold tracking-wide">DAY 8</div>
+      <div class="mt-2 flex h-[158px] items-center justify-center"><img src="https://maabaglamukhi.guru/navratri/8.webp" alt="Maa Mahagauri" class="h-[155px] w-[155px] object-contain"></div>
+      <div class="mt-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-bold tracking-wide text-primary-foreground">MAHAGAURI</div>
+      <div class="mt-2 text-xs font-semibold">18 October 2026<span class="mt-1 block font-normal">Ashtami</span></div>
+      <div class="mt-3 w-full border-t border-dashed border-border pt-2 text-xs font-bold"><iconify-icon icon="lucide:star" class="mr-1 align-middle text-primary"></iconify-icon>PURITY</div>
+      <div class="mt-3 text-xs font-semibold"><iconify-icon icon="lucide:circle-check" class="mr-1 align-middle text-green-600"></iconify-icon>Name &amp; Gotra Sankalp</div>
+      <div class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-xs font-bold tracking-wide text-primary-foreground">Book Puja<iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon></div>
+    </a>
+    <a href="/shardiya-navratri/day-9-maa-siddhidatri" class="relative flex h-[432px] flex-col items-center rounded-t-[5rem] rounded-b-xl bg-card px-3 pb-6 pt-7 text-center shadow-md">
+      <div class="absolute -top-3 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow">9</div>
+      <div class="text-sm font-bold tracking-wide">DAY 9</div>
+      <div class="mt-2 flex h-[158px] items-center justify-center"><img src="https://maabaglamukhi.guru/navratri/9.webp" alt="Maa Siddhidatri" class="h-[155px] w-[155px] object-contain"></div>
+      <div class="mt-1 rounded-sm bg-primary px-3 py-1.5 text-xs font-bold tracking-wide text-primary-foreground">SIDDHIDATRI</div>
+      <div class="mt-2 text-xs font-semibold">19 October 2026<span class="mt-1 block font-normal">Navami</span></div>
+      <div class="mt-3 w-full border-t border-dashed border-border pt-2 text-xs font-bold"><iconify-icon icon="lucide:crown" class="mr-1 align-middle text-primary"></iconify-icon>WISDOM</div>
+      <div class="mt-3 text-xs font-semibold"><iconify-icon icon="lucide:circle-check" class="mr-1 align-middle text-green-600"></iconify-icon>Name &amp; Gotra Sankalp</div>
+      <div class="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-xs font-bold tracking-wide text-primary-foreground">Book Puja<iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon></div>
+    </a>
+  </div>
+</section>
+<section class="bg-background text-foreground">
+  <div class="mx-auto flex min-h-[148px] max-w-[1176px] items-center justify-between gap-6 rounded-xl border border-border bg-card px-10 py-6 text-card-foreground shadow-sm">
+    <div class="flex items-center gap-6">
+      <iconify-icon icon="lucide:calendar-star" class="shrink-0 text-4xl text-primary"></iconify-icon>
+      <div>
+        <div class="text-xl font-bold leading-tight">Need Guidance on Navratri Puja Selection?</div>
+        <p class="mt-1 text-sm leading-6 text-card-foreground">Speak directly with our senior Acharya for free guidance on family Gotra Sankalp &amp; Navratri Anushthan.</p>
+        <div class="mt-2 text-xs text-card-foreground">10,000+ devotee Sankalps completed at Siddhapeeth</div>
+      </div>
+    </div>
+    <div class="flex shrink-0 items-center gap-3">
+      <a href="/shardiya-navratri" class="rounded-xl bg-secondary px-7 py-4 text-sm font-bold text-secondary-foreground shadow-sm">EXPLORE ALL 9 DAYS SCHEDULE ➔</a>
+      <a href="https://wa.me/917389567650?text=Pranam%20Acharya%20ji,%20I%20want%20guidance%20on%20Navratri%20Puja%20Sankalp" target="_blank" class="flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-sm font-bold text-primary-foreground shadow-sm">
+        <iconify-icon icon="lucide:message-circle" class="text-lg"></iconify-icon>
+        WHATSAPP ACHARYA JI
+      </a>
+    </div>
+  </div>
+</section>
+<section class="bg-background text-foreground h-[882px] overflow-hidden">
+  <div class="mx-auto max-w-6xl">
+    <div class="pt-0 text-center">
+      <span class="text-xs font-bold tracking-[0.24em] text-primary">SACRED ONLINE RITUAL SERVICES</span>
+      <h2 class="mt-4 text-4xl font-bold tracking-tight text-primary">Our Services</h2>
+      <p class="mx-auto mt-5 max-w-2xl text-base leading-7 text-foreground">Authentic Vedic rituals performed under the guidance of Acharya Vishnu Sharma at Maa Baglamukhi Siddha Peeth. Experience divine transformation through ancient Siddha Prakriya.</p>
+    </div>
+
+    <div class="mt-[70px] grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+      <a href="/baglamukhi-havan/" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/agni-pooja-1.png" alt="Hawan" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Hawan Services</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Sacred fire rituals for intense aura protection, deep peace, and absolute spiritual cleansing.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/baglamukhi-beej-mantra" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/bead-1.png" alt="Mantra Jaap" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Mantra Jaap</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Powerful mantra chanting guided by traditional Vedic processes for razor-sharp mind focus.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/baglamukhi-anushthan/" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/baglamukhi-purn-kalash.png" alt="Anusthan" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Anusthan Rituals</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Intensive customized procedures designed exclusively to eliminate major life obstacles.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/baglamukhi-havan/" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/bonfire-2.png" alt="Yagya" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Maha Yagya</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Grand ancient fire setups performed to perfectly align environment cosmic energies.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/baglamukhi-beej-mantra" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/hinduism-1.png" alt="Path" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Path (Chanting)</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Precise textbook recitation of holy scriptures to activate supreme defensive shields.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/court-case-puja/" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/ritual-court-case-icon-v2.png" alt="Court Case" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Court Case Puja</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Targeted specialized energetic rituals to ensure victory and justice in complex legal cases.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/services/" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/hindu-1.png" alt="Festival Special" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Festival Special</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">High-vibration mass rituals conducted only during high-power holy traditional Muhurtas.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/services/" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/pooja-1.png" alt="Customized Rituals" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Customized Puja</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Bespoke spiritual processes custom-tailored around your dynamic birth charts.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/baglamukhi-havan/" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm md:hidden">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/agni-pooja-1.png" alt="Hawan" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Hawan Services</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Sacred fire rituals for intense aura protection, deep peace, and absolute spiritual cleansing.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/baglamukhi-beej-mantra" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm md:hidden">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/bead-1.png" alt="Mantra Jaap" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Mantra Jaap</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Powerful mantra chanting guided by traditional Vedic processes for razor-sharp mind focus.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/baglamukhi-anushthan/" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm md:hidden">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/baglamukhi-purn-kalash.png" alt="Anusthan" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Anusthan Rituals</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Intensive customized procedures designed exclusively to eliminate major life obstacles.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+
+      <a href="/baglamukhi-havan/" class="flex h-[177px] items-center rounded-xl bg-card px-7 py-6 shadow-sm md:hidden">
+        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted">
+          <img src="https://maabaglamukhi.guru/images/bonfire-2.png" alt="Yagya" width="36" height="36" class="size-9 object-contain">
+        </div>
+        <div class="ml-5 min-w-0 flex-1">
+          <h3 class="text-xl font-bold leading-6">Maha Yagya</h3>
+          <p class="mt-1 text-sm leading-6 text-card-foreground">Grand ancient fire setups performed to perfectly align environment cosmic energies.</p>
+        </div>
+        <div class="ml-3 flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg text-foreground">➔</div>
+      </a>
+    </div>
+
+    <div class="mt-12 text-center">
+      <a href="/services/" class="inline-flex h-14 items-center justify-center gap-5 rounded-full bg-primary px-10 text-base font-bold text-primary-foreground shadow-sm">View Complete Ritual Catalog <span class="text-xl">→</span></a>
+    </div>
+  </div>
+</section>
+<section class="relative overflow-hidden bg-background px-6 py-[90px] text-foreground" aria-label="How Online Baglamukhi Puja Booking Works">
+  <div class="mx-auto max-w-[1200px]">
+    <div class="text-center">
+      <span class="text-sm font-bold uppercase tracking-[0.22em] text-primary">Simple &amp; Transparent</span>
+      <h2 class="mt-4 text-4xl font-bold leading-tight text-primary md:text-5xl">How Online Baglamukhi Puja Booking Works</h2>
+      <p class="mt-5 text-base text-foreground">Book your puja in 4 simple steps - from anywhere in the world</p>
+    </div>
+
+    <div class="relative mt-16 grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-6">
+      <div class="absolute left-[10%] right-[10%] top-[59px] hidden h-px bg-primary md:block"></div>
+
+      <div class="relative z-10 rounded-2xl border border-border bg-card px-6 pb-7 pt-7 text-center shadow-sm">
+        <div class="mx-auto flex size-16 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl">📋</div>
+        <div class="mt-4 inline-flex rounded-full border border-primary/40 bg-muted px-3 py-1 text-xs font-bold text-primary">STEP 01</div>
+        <h3 class="mt-5 text-lg font-bold leading-snug text-card-foreground">Choose &amp; Book Your Puja</h3>
+        <p class="mt-3 text-sm leading-[1.65] text-foreground">Select your puja type - Havan, Anushthan, or Shatru Vinash. Fill your name, gotra, and problem details. Instant confirmation on booking.</p>
+      </div>
+
+      <div class="relative z-10 rounded-2xl border border-border bg-card px-6 pb-7 pt-7 text-center shadow-sm">
+        <div class="mx-auto flex size-16 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl">🕉️</div>
+        <div class="mt-4 inline-flex rounded-full border border-primary/40 bg-muted px-3 py-1 text-xs font-bold text-primary">STEP 02</div>
+        <h3 class="mt-5 text-lg font-bold leading-snug text-card-foreground">Sankalp &amp; Auspicious Date</h3>
+        <p class="mt-3 text-sm leading-[1.65] text-foreground">Acharya Vishnu Sharma personally calculates yourSiddha Muhurtabased on your birth chart. Sankalp taken in your name for full benefit.</p>
+      </div>
+
+      <div class="relative z-10 rounded-2xl border border-border bg-card px-6 pb-7 pt-7 text-center shadow-sm">
+        <div class="mx-auto flex size-16 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl">📱</div>
+        <div class="mt-4 inline-flex rounded-full border border-primary/40 bg-muted px-3 py-1 text-xs font-bold text-primary">STEP 03</div>
+        <h3 class="mt-5 text-lg font-bold leading-snug text-card-foreground">Attend Live via Video</h3>
+        <p class="mt-3 text-sm leading-[1.65] text-foreground">Join the hawan live on WhatsApp/Zoom and witness the rituals in real-time. Full HD recording provided for devotees who cannot attend live.</p>
+      </div>
+
+      <div class="relative z-10 rounded-2xl border border-border bg-card px-6 pb-7 pt-7 text-center shadow-sm">
+        <div class="mx-auto flex size-16 items-center justify-center rounded-full border-2 border-primary bg-background text-3xl">📦</div>
+        <div class="mt-4 inline-flex rounded-full border border-primary/40 bg-muted px-3 py-1 text-xs font-bold text-primary">STEP 04</div>
+        <h3 class="mt-5 text-lg font-bold leading-snug text-card-foreground">Prasad &amp; Yantra Delivery</h3>
+        <p class="mt-3 text-sm leading-[1.65] text-foreground">Receive sacred Vibhuti, Raksha Sutra, and energized Maa Baglamukhi Yantra delivered to your doorstep - worldwide courier available.</p>
+      </div>
+    </div>
+
+    <div class="mt-15 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <a href="/booking" class="inline-flex min-w-[258px] items-center justify-center gap-3 rounded-full bg-primary px-8 py-4 font-bold text-primary-foreground shadow-lg">
+        Book Your Puja Now
+        <iconify-icon icon="lucide:arrow-right" class="text-lg"></iconify-icon>
+      </a>
+      <a href="tel:+917389567650" class="inline-flex min-w-[300px] items-center justify-center gap-3 rounded-full border-2 border-border px-8 py-[14px] font-bold text-primary">
+        <iconify-icon icon="lucide:phone-call" class="text-lg"></iconify-icon>
+        Call for Free Consultation
+      </a>
+    </div>
+  </div>
+</section>
+<section class="h-[209px] overflow-hidden bg-background text-foreground text-center">
+  <div class="mx-auto flex max-w-[620px] flex-col items-center">
+    <span class="inline-flex h-[30px] items-center rounded-full border border-border bg-muted px-5 text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground">Siddha Peeth · Verified Information</span>
+    <h2 class="mt-6 font-serif text-[46px] font-semibold leading-[1.1] text-primary">Key Facts at a Glance</h2>
+    <p class="mt-5 max-w-[600px] text-[16px] leading-[25px] text-foreground">Authoritative details about Maa Baglamukhi Siddha Peeth, Acharya Pandit Vishnu Sharma, and our sacred ritual services - structured for both devotees and AI search engines.</p>
+  </div>
+</section>
+<section class="h-[52px] bg-background text-foreground">
+  <div class="flex h-full items-start justify-center gap-2" role="tablist">
+    <button class="flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-md" data-target="temple" role="tab">
+      <iconify-icon icon="lucide:house" class="text-base"></iconify-icon>
+      Temple Facts
+    </button>
+    <button class="flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-semibold" data-target="acharya" role="tab">
+      <iconify-icon icon="lucide:user-round" class="text-base text-muted-foreground"></iconify-icon>
+      Acharya Profile
+    </button>
+    <button class="flex h-11 items-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-semibold" data-target="rituals" role="tab">
+      <iconify-icon icon="lucide:flame" class="text-base text-muted-foreground"></iconify-icon>
+      Ritual Details
+    </button>
+  </div>
+</section>
+<section class="h-[769px] w-full overflow-hidden bg-background text-foreground">
+  <div class="grid grid-cols-4 gap-4">
+    <div class="flex h-[126px] flex-col items-center justify-center rounded-b-2xl border border-border bg-card text-center shadow-sm">
+      <span class="text-4xl font-bold text-primary">26+</span>
+      <span class="mt-2 text-xs font-semibold uppercase tracking-wide text-card-foreground">Years of Sacred Service</span>
+    </div>
+    <div class="flex h-[126px] flex-col items-center justify-center rounded-b-2xl border border-border bg-card text-center shadow-sm">
+      <span class="text-4xl font-bold text-primary">51</span>
+      <span class="mt-2 text-xs font-semibold uppercase tracking-wide text-card-foreground">Siddha Peeths in India</span>
+    </div>
+    <div class="flex h-[126px] flex-col items-center justify-center rounded-b-2xl border border-border bg-card text-center shadow-sm">
+      <span class="text-4xl font-bold text-primary">1.25L</span>
+      <span class="mt-2 text-xs font-semibold uppercase tracking-wide text-card-foreground">Mantras in Full Anushthan</span>
+    </div>
+    <div class="flex h-[126px] flex-col items-center justify-center rounded-b-2xl border border-border bg-card text-center shadow-sm">
+      <span class="text-4xl font-bold text-primary">50+</span>
+      <span class="mt-2 text-xs font-semibold uppercase tracking-wide text-card-foreground">Countries Served</span>
+    </div>
+  </div>
+
+  <div class="mt-8 grid grid-cols-2 gap-x-4 gap-y-[18px]">
+    <div class="flex h-[102px] flex-col justify-center rounded-2xl bg-card px-7 shadow-sm">
+      <span class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">• Temple Name</span>
+      <span class="mt-3 text-sm">Maa Baglamukhi Siddha Peeth</span>
+    </div>
+    <div class="flex h-[102px] flex-col justify-center rounded-2xl bg-card px-7 shadow-sm">
+      <span class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">• Location</span>
+      <span class="mt-3 text-sm">Nalkheda, District Agar Malwa, Madhya Pradesh - PIN 465445</span>
+    </div>
+    <div class="flex h-[102px] flex-col justify-center rounded-2xl bg-card px-7 shadow-sm">
+      <span class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">• Sacred Lake</span>
+      <span class="mt-3 text-sm">Haridra Sarovar (Lake of Turmeric)</span>
+    </div>
+    <div class="flex h-[102px] flex-col justify-center rounded-2xl bg-card px-7 shadow-sm">
+      <span class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">• Temple Type</span>
+      <span class="mt-3 text-sm">Hindu Temple · Siddha Peeth · Shaktipeeth</span>
+    </div>
+    <div class="flex h-[102px] flex-col justify-center rounded-2xl bg-card px-7 shadow-sm">
+      <span class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">• Main Deity</span>
+      <span class="mt-3 text-sm">Maa Baglamukhi (Pitambara Devi) - Eighth Mahavidya</span>
+    </div>
+    <div class="flex h-[102px] flex-col justify-center rounded-2xl bg-card px-7 shadow-sm">
+      <span class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">• Special Power</span>
+      <span class="mt-3 text-sm">Stambhan Shakti - power to paralyze obstacles and enemies</span>
+    </div>
+    <div class="flex h-[102px] flex-col justify-center rounded-2xl bg-card px-7 shadow-sm">
+      <span class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">• Main Rituals</span>
+      <span class="mt-3 text-sm">Baglamukhi Havan · Anushthan (Mantra Jaap) · Sankalp Puja</span>
+    </div>
+    <div class="flex h-[102px] flex-col justify-center rounded-2xl bg-card px-7 shadow-sm">
+      <span class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">• Best Time</span>
+      <span class="mt-3 text-sm">Ashtami Tithi · Navratri (Sep-Oct) | Tuesdays (Mangalvar)</span>
+    </div>
+    <div class="col-span-2 flex h-[126px] flex-col justify-center rounded-2xl bg-card px-7 shadow-sm">
+      <span class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">• Online Services</span>
+      <span class="mt-3 text-sm leading-6">Puja booking, live Sankalp video call, and international prasad delivery - available worldwide via WhatsApp, Zoom, and website - Devotees from 50+ countries have participated in rituals from home.</span>
+    </div>
+  </div>
+</section>
+<section class="bg-background text-foreground w-full text-center">
+  <h2 class="mb-5 text-center text-3xl font-bold text-primary">Maa Baglamukhi Guru Puja</h2>
+</section>
+<section class="bg-primary text-primary-foreground">
+  <div class="mx-auto flex h-[382px] max-w-[1184px] overflow-hidden rounded-[24px] bg-card text-card-foreground">
+    <div class="w-5/12 shrink-0">
+      <div class="h-full w-full overflow-hidden">
+        <img src="https://maabaglamukhi.guru/images/baglamukhi-hawan.webp" alt="Maa Baglamukhi Hawan" width="636" height="355" class="h-full w-full object-cover">
+      </div>
+    </div>
+    <div class="flex w-7/12 flex-col px-6 py-5">
+      <h2 class="mb-2 font-serif text-4xl font-bold leading-tight text-card-foreground">Maa Baglamukhi Hawan</h2>
+      <div class="mb-3 flex items-center">
+        <div class="mr-3 flex items-center gap-1 text-accent">
+          <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+          <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+          <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+          <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+          <iconify-icon icon="lucide:star-half" class="text-lg"></iconify-icon>
+        </div>
+        <span class="rounded-full border border-border px-2 py-1 text-xs font-semibold text-card-foreground">4.8 / 5.0</span>
+      </div>
+      <div class="h-px w-full bg-border"></div>
+      <p class="mt-3 text-base leading-[1.7] text-card-foreground">Maa Baglamukhi Hawan is a powerful Vedic fire ritual performed at Nalkheda Siddha Peeth to invoke the divine Stambhan Shakti. It is the ultimate remedy for those facing insurmountable legal battles, debt traps, or unseen enemies. In this sacred ritual, we use 36 specific medicinal herbs including yellow turmeric, pure cow ghee, and yellow mustard. Every booking includes a live Sankalp video call where your name, gotra, and purpose are explicitly stated to the Goddess.</p>
+      <div class="mt-auto flex gap-2 pt-4">
+        <a href="/baglamukhi-havan/" class="flex-1">
+          <button class="w-full rounded-full border border-border bg-transparent py-3 text-sm font-bold text-card-foreground">Learn about Maa Baglamukhi Hawan</button>
+        </a>
+        <a href="/baglamukhi-havan/" class="flex-1">
+          <button class="flex w-full items-center justify-center rounded-xl bg-accent py-3 text-sm font-bold uppercase tracking-wide text-accent-foreground">
+            <iconify-icon icon="lucide:calendar-check" class="mr-3 text-base"></iconify-icon>
+            Book Now
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="h-96 w-full overflow-hidden bg-primary text-primary-foreground">
+  <div class="mx-auto flex h-full w-full max-w-[1184px] overflow-hidden rounded-b-3xl border border-border/30">
+    <div class="w-5/12 shrink-0">
+      <div class="h-full w-full">
+        <img src="https://maabaglamukhi.guru/images/baglamukhi-anusthan2.webp" alt="Maa Baglamukhi Anushthan" width="636" height="355" class="h-full w-full object-cover">
+      </div>
+    </div>
+    <div class="flex w-7/12 flex-col px-6 py-5">
+      <h2 class="mb-2 text-4xl font-bold leading-tight">Maa Baglamukhi Anushthan</h2>
+      <div class="mb-3 flex items-center gap-2">
+        <div class="flex items-center gap-0.5 text-accent">
+          <iconify-icon icon="lucide:star" class="text-lg" fill="currentColor"></iconify-icon>
+          <iconify-icon icon="lucide:star" class="text-lg" fill="currentColor"></iconify-icon>
+          <iconify-icon icon="lucide:star" class="text-lg" fill="currentColor"></iconify-icon>
+          <iconify-icon icon="lucide:star" class="text-lg" fill="currentColor"></iconify-icon>
+          <iconify-icon icon="lucide:star-half" class="text-lg" fill="currentColor"></iconify-icon>
+        </div>
+        <span class="rounded-full border border-border px-2 py-0.5 text-xs font-semibold">4.8 / 5.0</span>
+      </div>
+      <div class="mb-3 h-px w-full bg-border/50"></div>
+      <p class="text-base leading-7 text-primary-foreground/90">Anushthan is an intensive, multi-day spiritual discipline involving the chanting of 1.25 lakh Maa Baglamukhi Mantras. Unlike a one-day hawan, this is a deep purification process designed for long-standing issues like chronic health problems, complex property disputes, or spiritual blockages. At our Peeth, a group of dedicated Pandits performs the chanting daily over 11 days, maintaining strict celibacy and sattvic rules. This is the most comprehensive ritual for total protection and success.</p>
+      <div class="mt-4 flex gap-2">
+        <a href="/baglamukhi-anushthan/" class="flex-1">
+          <button class="w-full rounded-full border-2 border-border px-4 py-3 text-sm font-bold">Learn about Maa Baglamukhi Anushthan</button>
+        </a>
+        <a href="/baglamukhi-anushthan/" class="flex-1">
+          <button class="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-bold text-accent-foreground text-foreground">
+            <iconify-icon icon="lucide:calendar-check" class="text-base"></iconify-icon>
+            Book Now
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="h-96 w-full overflow-hidden bg-primary text-primary-foreground">
+  <div class="mx-auto flex h-full w-full max-w-[1184px] overflow-hidden border border-border/30">
+    <div class="w-5/12 shrink-0 border-r border-border/30">
+      <div class="h-full w-full overflow-hidden">
+        <img src="https://maabaglamukhi.guru/images/political-success.webp" alt="Maa Baglamukhi Political Puja" width="636" height="355" class="h-full w-full object-cover">
+      </div>
+    </div>
+    <div class="flex w-7/12 flex-col justify-center px-6 py-5">
+      <h2 class="mb-2 text-3xl font-bold leading-tight">Maa Baglamukhi Political Puja</h2>
+      <div class="mb-3 flex items-center gap-2">
+        <div class="flex items-center gap-0.5 text-accent">
+          <iconify-icon icon="solar:star-bold" class="text-lg"></iconify-icon>
+          <iconify-icon icon="solar:star-bold" class="text-lg"></iconify-icon>
+          <iconify-icon icon="solar:star-bold" class="text-lg"></iconify-icon>
+          <iconify-icon icon="solar:star-bold" class="text-lg"></iconify-icon>
+          <iconify-icon icon="solar:star-half-bold" class="text-lg"></iconify-icon>
+        </div>
+        <span class="rounded-md bg-muted px-2 py-1 text-xs font-semibold text-foreground">4.8 / 5.0</span>
+      </div>
+      <div class="mb-3 h-px w-full bg-border/50"></div>
+      <p class="text-sm leading-7 text-primary-foreground/85">In the modern era of intense competition, this specialized ritual is for leaders and aspiring politicians. Established by legendary leaders at Nalkheda, this puja works on the principle of Shatru-Stambhan - silencing opposition and enhancing your leadership aura. The ritual focuses on the Yellow color symbolism to attract power and respect. Whether you are contesting an election or seeking organizational growth, this puja helps clear obstacles and ensures divine support.</p>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <a href="/political-success-puja/" class="min-w-0 flex-grow">
+          <button class="w-full rounded-full border border-border bg-transparent px-4 py-3 text-sm font-semibold text-primary-foreground">Learn about Maa Baglamukhi Political Puja</button>
+        </a>
+        <a href="/political-success-puja/#puja-packages" class="min-w-0 flex-grow">
+          <button class="w-full rounded-xl bg-accent px-4 py-3 text-sm font-bold tracking-wide text-accent-foreground text-foreground">
+            <iconify-icon icon="lucide:calendar-check" class="mr-2 align-middle text-base"></iconify-icon>
+            Book Now
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="flex h-96 w-full overflow-hidden rounded-r-3xl bg-primary text-primary-foreground">
+  <div class="basis-5/12 border-r border-border">
+    <div class="h-full w-full">
+      <img src="https://maabaglamukhi.guru/images/vashikaran.webp" alt="Maa Baglamukhi Aakarshan" class="h-full w-full object-cover" width="636" height="355">
+    </div>
+  </div>
+  <div class="basis-7/12 p-6">
+    <h2 class="mb-2 text-3xl font-bold leading-tight">Maa Baglamukhi Aakarshan</h2>
+    <div class="mb-2 flex items-center">
+      <div class="mr-2 flex items-center gap-1 text-accent">
+        <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+        <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+        <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+        <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+        <iconify-icon icon="lucide:star-half" class="text-lg"></iconify-icon>
+      </div>
+      <span class="rounded-md border border-border px-2 py-1 text-xs font-semibold">4.8 / 5.0</span>
+    </div>
+    <div class="border-t border-border"></div>
+    <p class="mt-3 text-sm leading-7 text-primary-foreground">Maa Baglamukhi Aakarshan Prayog is a Vedic technique to harmonize your inner energy and project a more charismatic presence. By aligning your aura with the Golden Ray of the Mother, you become a beacon of positive energy. This ritual is particularly beneficial for professionals, speakers, and those seeking to resolve family conflicts through peaceful persuasion. We provide an energized Raksha Sutra and a personal Yantra as part of this service to maintain the energy field after the puja.</p>
+    <div class="mt-4 flex flex-wrap gap-2">
+      <a href="/aakarshan-puja/" class="min-w-0 flex-1">
+        <button class="w-full rounded-full border border-border py-2 text-sm font-semibold text-primary-foreground">Learn about Maa Baglamukhi Aakarshan</button>
+      </a>
+      <a href="/aakarshan-puja/#puja-packages" class="min-w-0 flex-1">
+        <button class="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-2 text-sm font-semibold text-accent-foreground text-foreground">
+          <iconify-icon icon="lucide:calendar-check" class="text-base"></iconify-icon>
+          Book Now
+        </button>
+      </a>
+    </div>
+  </div>
+</section>
+<section class="bg-primary text-primary-foreground">
+  <div class="mx-auto flex h-96 w-full max-w-[1184px] overflow-hidden rounded-r-3xl border-b border-border">
+    <div class="w-5/12 overflow-hidden">
+      <img src="https://maabaglamukhi.guru/images/satrunash.webp" alt="Shatru Vinash Puja" width="636" height="355" class="h-full w-full object-cover">
+    </div>
+    <div class="flex w-7/12 flex-col justify-center px-6 py-5 sm:px-8 md:px-6">
+      <h2 class="mb-2 font-serif text-4xl font-bold leading-tight">Shatru Vinash Puja</h2>
+      <div class="mb-3 flex items-center gap-3">
+        <div class="flex items-center gap-1 text-accent">
+          <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+          <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+          <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+          <iconify-icon icon="lucide:star" class="text-lg"></iconify-icon>
+          <iconify-icon icon="lucide:star-half" class="text-lg"></iconify-icon>
+        </div>
+        <span class="rounded-md border border-border px-2 py-1 text-xs font-semibold">4.8 / 5.0</span>
+      </div>
+      <div class="mb-3 h-px w-full bg-border"></div>
+      <p class="text-base leading-7 text-primary-foreground">
+        The Shatru Vinash Puja is specifically designed for protection against known and hidden adversaries who may be harming your progress through legal or social means. At Nalkheda Siddha Peeth, we perform this with the Vipreet Pratyangira combination for maximum safety. The ritual does not aim to harm but to neutralize the negative intentions of others, creating a shield of divine protection around you. It is highly recommended for those in high-stakes businesses or those suffering from malicious gossip.
+      </p>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <a href="/shatru-vinash-puja/" class="min-w-0 flex-1">
+          <button class="w-full rounded-full border-2 border-border px-4 py-2 text-sm font-bold text-primary-foreground">Learn about Shatru Vinash Puja</button>
+        </a>
+        <a href="/shatru-vinash-puja/#puja-packages" class="min-w-0 flex-1">
+          <button class="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-bold uppercase text-accent-foreground shadow-lg text-foreground">
+            <iconify-icon icon="lucide:calendar-check" class="text-base"></iconify-icon>
+            Book Now
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="h-[382px] w-full overflow-hidden bg-primary text-primary-foreground">
+  <div class="mx-auto flex h-full max-w-[1184px] overflow-hidden rounded-[24px] border border-border/30">
+    <div class="w-[42%] shrink-0 overflow-hidden">
+      <img src="https://maabaglamukhi.guru/images/uchhatan.webp" alt="Maa Baglamukhi Uchchatan" width="636" height="355" class="h-full w-full object-cover">
+    </div>
+    <div class="flex flex-1 flex-col bg-primary px-6 py-5">
+      <h2 class="mb-2 text-[34px] font-bold leading-tight">Maa Baglamukhi Uchchatan</h2>
+      <div class="mb-3 flex items-center gap-3">
+        <div class="flex items-center gap-1 text-accent">
+          <iconify-icon icon="solar:star-bold" class="text-[19px]"></iconify-icon>
+          <iconify-icon icon="solar:star-bold" class="text-[19px]"></iconify-icon>
+          <iconify-icon icon="solar:star-bold" class="text-[19px]"></iconify-icon>
+          <iconify-icon icon="solar:star-bold" class="text-[19px]"></iconify-icon>
+          <iconify-icon icon="solar:star-half-bold" class="text-[19px]"></iconify-icon>
+        </div>
+        <span class="rounded-md border border-border px-2 py-1 text-xs font-semibold">4.8 / 5.0</span>
+      </div>
+      <div class="h-px w-full bg-border/60"></div>
+      <p class="mt-3 text-[16px] leading-[1.7] text-primary-foreground/90">Maa Baglamukhi Uchchatan is a sacred ritual performed to remove negative energies and create spiritual distance from toxic individuals or persistent adversaries. This ritual purifies your aura and environmental space, breaking the cycle of negative influence that may be draining your mental peace. It is the spiritual choice for those who have tried all worldly solutions but still feel suppressed or targeted by external spiritual or social forces. We ensure absolute privacy and Vedic precision.</p>
+      <div class="mt-auto flex gap-2 pt-3">
+        <a href="/uchchatan-puja/" class="flex-1">
+          <button class="w-full rounded-full border-2 border-border px-4 py-3 text-sm font-bold text-primary-foreground">Learn about Maa Baglamukhi Uchchatan</button>
+        </a>
+        <a href="/uchchatan-puja/#puja-packages" class="flex-1">
+          <button class="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-bold uppercase text-accent-foreground text-foreground">
+            <iconify-icon icon="lucide:calendar-check" class="text-[17px]"></iconify-icon>
+            Book Now
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="mt-5 bg-background text-foreground text-center leading-none">
+  <a href="/services/" class="inline-flex h-[58px] items-center justify-center gap-2 rounded-full bg-primary px-8 text-sm font-semibold uppercase tracking-wide text-primary-foreground">
+    <iconify-icon icon="lucide:circle-plus" class="text-base"></iconify-icon>
+    Explore All Baglamukhi Puja Services
+  </a>
+</section>
+<section class="sacred-about-maa-content h-[827px] bg-background px-12 py-15 text-foreground">
+  <div class="sacred-about-maa-text-block mx-auto max-w-3xl">
+    <span class="sacred-about-maa-eyebrow inline-flex items-center rounded-full border border-border bg-muted px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">🔱 The Eighth Mahavidya</span>
+    <h2 class="sacred-about-maa-heading mt-5 text-4xl font-bold leading-tight text-primary">About Maa Baglamukhi</h2>
+    <h3 class="sacred-about-maa-subheading mt-1 text-base italic text-foreground">(Pitambara Devi - Goddess of Stambhan &amp; Protection)</h3>
+
+    <p class="sacred-about-maa-paragraph mt-7 text-base leading-[1.85]">
+      Maa Baglamukhi is the eighth of the Dasha Mahavidyas, the ten great wisdom goddesses of the Shakta tradition. She embodies Stambhan Shakti - the divine power to stop, still, and neutralise negativity and hostility. Tradition holds she manifested from Haridra Sarovar, the turmeric-hued lake, to still a cosmic storm threatening creation.
+    </p>
+
+    <p class="sacred-about-maa-paragraph mt-5 text-base leading-[1.85]">
+      Known as Pitambara Devi, "the one clothed in yellow," she is worshipped with turmeric and yellow offerings symbolising purity, auspiciousness, and focus. She is also revered for Vaak Siddhi - mastery over speech - and her grace is said to flow toward those who stand on truth. Devotees across generations turn to her for courage, protection, and spiritual strength.
+    </p>
+
+    <p class="sacred-about-maa-paragraph mt-5 text-base italic leading-[1.85] text-foreground">
+      Speak with our spiritual team to understand whether Maa Baglamukhi Hawan aligns with your devotional intentions.
+    </p>
+
+    <div class="cta-wrapper mt-6 flex flex-wrap items-center gap-3">
+      <a href="tel:+917389567650" class="btn-call-premium inline-flex h-14 items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-md">
+        <iconify-icon icon="lucide:phone-call" class="text-lg"></iconify-icon>
+        Call Now
+      </a>
+      <a href="/booking" class="btn-call-premium inline-flex h-14 items-center justify-center gap-2 rounded-full border border-border bg-muted px-6 text-sm font-semibold text-primary shadow-md">
+        <iconify-icon icon="lucide:calendar-check" class="text-lg"></iconify-icon>
+        Book Consultation
+      </a>
+      <a href="https://wa.me/917389567650?text=Namaste%2C%20I%20need%20guidance%20about%20Maa%20Baglamukhi" target="_blank" class="btn-whatsapp-premium inline-flex h-14 items-center justify-center gap-2 rounded-full border border-border bg-card px-6 text-sm font-semibold text-primary shadow-md">
+        <iconify-icon icon="lucide:message-circle" class="text-lg"></iconify-icon>
+        WhatsApp Now
+      </a>
+    </div>
+  </div>
+</section>
+<section class="h-30 bg-background text-foreground">
+  <div class="mx-auto flex h-28 w-full gap-6 px-3.5">
+    <div class="min-w-0 flex-1 rounded-r-xl border border-border border-l-4 border-l-primary bg-card px-5 py-3 text-card-foreground">
+      <h4 class="text-base font-bold leading-6 text-primary">Stambhan Shakti</h4>
+      <p class="mt-2 text-sm leading-6">The Devi's defining power to halt negativity, hostility, and chaos. Devotees seek it as a spiritual shield during life's most challenging phases.</p>
+    </div>
+    <div class="min-w-0 flex-1 rounded-r-xl border border-border border-l-4 border-l-primary bg-card px-5 py-3 text-card-foreground">
+      <h4 class="text-base font-bold leading-6 text-primary">Vaak Siddhi</h4>
+      <p class="mt-2 text-sm leading-6">Mastery over speech, granting clarity, firmness, and truthful expression. Devotees pray for it before courtrooms, negotiations, and difficult conversations.</p>
+    </div>
+  </div>
+</section>
+<section class="h-[355px] bg-primary px-6 pt-12 pb-14 text-primary-foreground">
+  <div class="mx-auto max-w-[1230px]">
+    <div class="flex flex-col items-center">
+      <div class="font-serif text-xl font-bold">Sacred Benefits Summary</div>
+      <div class="mt-4 h-px w-14 bg-border"></div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-4 gap-5">
+      <div class="flex h-[170px] flex-col items-center rounded-xl border border-border bg-card px-6 pt-7 text-center">
+        <div class="text-2xl text-primary-foreground">
+          <iconify-icon icon="bx:bxs-shield"></iconify-icon>
+        </div>
+        <strong class="mt-6 text-base font-bold text-card-foreground">Spiritual Protection</strong>
+        <span class="mt-2 text-sm leading-5 text-card-foreground">Maa's grace as a shield in difficult times.</span>
+      </div>
+
+      <div class="flex h-[170px] flex-col items-center rounded-xl border border-border bg-card px-6 pt-7 text-center">
+        <div class="text-2xl text-primary-foreground">
+          <iconify-icon icon="bx:bxs-bolt"></iconify-icon>
+        </div>
+        <strong class="mt-6 text-base font-bold text-card-foreground">Inner Courage</strong>
+        <span class="mt-2 text-sm leading-5 text-card-foreground">Strength to face challenges with a fearless heart.</span>
+      </div>
+
+      <div class="flex h-[170px] flex-col items-center rounded-xl border border-border bg-card px-6 pt-7 text-center">
+        <div class="text-2xl text-primary-foreground">
+          <iconify-icon icon="bx:bxs-brain"></iconify-icon>
+        </div>
+        <strong class="mt-6 text-base font-bold text-card-foreground">Mental Stability</strong>
+        <span class="mt-2 text-sm leading-5 text-card-foreground">Stillness of mind through mantra and devotion.</span>
+      </div>
+
+      <div class="flex h-[170px] flex-col items-center rounded-xl border border-border bg-card px-6 pt-7 text-center">
+        <div class="text-2xl text-primary-foreground">
+          <iconify-icon icon="bx:bxs-heart"></iconify-icon>
+        </div>
+        <strong class="mt-6 text-base font-bold text-card-foreground">Devotional Growth</strong>
+        <span class="mt-2 text-sm leading-5 text-card-foreground">A deeper, lasting bond with Pitambara Devi.</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="h-[739px] overflow-hidden bg-background text-foreground">
+  <div class="mx-auto grid h-full max-w-[1120px] grid-cols-2 items-center gap-12">
+    <div class="relative pt-1">
+      <div class="rounded-[26px] border border-border bg-card p-3">
+        <img src="https://maabaglamukhi.guru/images/ritual-general-hawan.png" alt="Vedic Astrology &amp; Kundli Reading Frame" width="540" height="360" class="h-[490px] w-full rounded-[18px] object-cover">
+      </div>
+      <div class="absolute bottom-[-8px] right-[-8px] flex h-[92px] w-[110px] flex-col justify-center rounded-2xl bg-primary px-4 text-primary-foreground shadow-lg">
+        <span class="text-[26px] font-bold leading-none">26+</span>
+        <span class="mt-2 text-[12px] font-bold uppercase leading-[13px]">Years of<br>Expertise</span>
+      </div>
+    </div>
+
+    <div class="pb-1">
+      <span class="text-[11px] font-bold uppercase tracking-[0.28em] text-primary">Spiritual Guidance</span>
+      <h2 class="mt-3 font-serif text-[43px] font-bold leading-[1.22] tracking-tight">
+        <span>Vedic Astrology &amp;</span><br>
+        <span class="text-primary">Kundli Reading</span>
+      </h2>
+      <p class="mt-5 max-w-[570px] text-[16px] leading-[1.8] text-foreground">
+        Acharya Pandit Vishnu Sharma provides deep insights into your life's path using ancient Vedic Jyotish principles. Resolve career, marriage, and financial hurdles with divine structural guidance.
+      </p>
+
+      <div class="mt-6 grid grid-cols-2 gap-4">
+        <div class="min-h-[187px] rounded-2xl border border-border bg-card px-6 py-5">
+          <iconify-icon icon="lucide:sun" class="text-[30px] text-primary"></iconify-icon>
+          <h3 class="mt-3 font-serif text-[18px] font-bold text-primary">Kundli Matching</h3>
+          <p class="mt-2 text-[14px] leading-[1.55] text-card-foreground">Detailed analysis for marriage compatibility and ensuring lifelong future harmony.</p>
+        </div>
+
+        <div class="min-h-[187px] rounded-2xl border border-border bg-card px-6 py-5">
+          <iconify-icon icon="lucide:moon" class="text-[30px] text-primary"></iconify-icon>
+          <h3 class="mt-3 font-serif text-[18px] font-bold text-primary">Grah Dosh</h3>
+          <p class="mt-2 text-[14px] leading-[1.55] text-card-foreground">Precise Vedic remedies for absolute Shani, Rahu, Ketu, and Mangal Dosha errors.</p>
+        </div>
+
+        <div class="min-h-[187px] rounded-2xl border border-border bg-card px-6 py-5">
+          <iconify-icon icon="lucide:building-2" class="text-[30px] text-primary"></iconify-icon>
+          <h3 class="mt-3 font-serif text-[18px] font-bold text-primary">Vastu Shastra</h3>
+          <p class="mt-2 text-[14px] leading-[1.55] text-card-foreground">Balance structural and elemental energies of your spaces for holistic growth.</p>
+        </div>
+
+        <div class="min-h-[187px] rounded-2xl border border-border bg-card px-6 py-5">
+          <iconify-icon icon="lucide:briefcase-business" class="text-[30px] text-primary"></iconify-icon>
+          <h3 class="mt-3 font-serif text-[18px] font-bold text-primary">Career &amp; Wealth</h3>
+          <p class="mt-2 text-[14px] leading-[1.55] text-card-foreground">Calculated auspicious Muhurats and custom solutions for trade expansions.</p>
+        </div>
+      </div>
+
+      <div class="mt-7">
+        <a href="/booking" class="inline-flex items-center gap-3 rounded-full bg-primary px-10 py-4 text-[15px] font-bold text-primary-foreground shadow-lg">
+          <iconify-icon icon="lucide:calendar-days" class="text-[18px]"></iconify-icon>
+          Book Consultation
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="bg-card text-foreground p-0">
+  <div class="mb-5 text-center">
+    <h2 class="text-5xl font-bold leading-tight">Frequently Asked Questions</h2>
+    <p class="mt-6 text-card-foreground">Explore detailed answers about Baglamukhi rituals and guidance.</p>
+  </div>
+</section>
+<section class="bg-card text-foreground">
+  <div class="mx-auto flex w-full max-w-[1200px] gap-6 px-3">
+    <div class="w-1/2 space-y-4">
+      <details open="" class="overflow-hidden rounded-md border border-border bg-card">
+        <summary class="flex cursor-pointer list-none items-center justify-between bg-muted px-5 py-3 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">What is Maa Baglamukhi Puja and why is it so powerful?<iconify-icon icon="lucide:chevron-up" class="text-xl"></iconify-icon></summary>
+        <div class="border-t border-border px-5 py-5 text-[15px] leading-6 text-card-foreground">Maa Baglamukhi Puja is a sacred Vedic ritual dedicated to the 8th Mahavidya, known as Pitambara Devi. She embodies Stambhan Shakti - the cosmic power to paralyze, silence, and freeze all negative energies, enemy attacks, and harmful intentions. Her worship at the Siddha Peeth of Nalkheda is considered extraordinarily potent because the temple carries unbroken vibrational energy from the Mahabharata era. Devotees seek her blessings for court case victories, enemy neutralization, black magic removal, political success, financial prosperity, and spiritual protection. The rituals involve sacred fire ceremonies (Hawan), intensive mantra chanting (Anushthan), and mandatory use of yellow turmeric representing her divine radiance.</div>
+      </details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">Which problems can Baglamukhi Puja solve?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Baglamukhi Puja addresses a wide range of life challenges including: court cases and legal disputes (civil, criminal, property, family), persistent enemies at workplace or personal life, black magic and negative occult practices (Abhichara Karma), business losses, financial debt, and blocked prosperity, career obstacles, job interviews, or promotion blocks, relationship conflicts and marital disputes, chronic health issues without medical solution, evil eye (nazar dosh) and unexplained troubles, political or administrative barriers, examination fear and academic struggles. The key is performing the correct Sankalp (sacred vow) at the right time under expert guidance from Acharya Pandit Vishnu Sharma at Nalkheda.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">Is Baglamukhi Puja effective for court cases?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Yes, Baglamukhi Puja is considered one of the most powerful Vedic remedies for court cases. Maa Baglamukhi's Stambhan Shakti works on multiple levels: it confuses the opposing party's lawyers and witnesses, paralyzes hostile arguments, forces truth to prevail in judicial proceedings, and creates a protective shield around the devotee. At Nalkheda Siddha Peeth, Acharya Pandit Vishnu Sharma has helped hundreds of devotees win civil, criminal, property, and family court cases. The 1.25 lakh Mantra Jaap Anushthan is particularly recommended for long-pending or high-stakes legal matters. Results typically emerge within weeks depending on Sankalp clarity and the devotee's faith.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">Can Baglamukhi Puja remove enemies completely?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">The Shatru Vinash aspect of Baglamukhi Puja creates a spiritual force field that either neutralizes enemies completely or renders them incapable of causing harm. Rather than physically harming anyone, the ritual channels Stambhan energy to freeze the enemy's malicious intent and actions. In practice, this means adversaries become harmless, apologize, back off, or find themselves unable to execute harmful plans. This has been the most sought-after service at Nalkheda for workplace enemies, competitive rivals, toxic neighbours, legal opponents, and supernatural threats. The goddess does not promote violence - she simply returns negative energy to its source while protecting the devotee.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">How does Baglamukhi Anushthan work - step by step?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Anushthan is an intensive multi-day ritual involving continuous chanting of Baglamukhi mantras a specific number of times. The powerful 1.25 lakh (125,000) Mantra Jaap Anushthan is performed over 7-11 days at Nalkheda Siddha Peeth. Here is how it works: First, a detailed Sankalp (sacred vow) is taken via video call where the devotee states their exact intention. Then, certified Acharyas chant the assigned mantras continuously while performing twice-daily Hawans. The accumulated spiritual energy is channeled specifically toward the devotee's stated problem. The process is fully transparent - devotees receive live updates, video proof, and energized Prasad (Raksha Sutra, sacred Bhasma) is couriered worldwide at completion.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">What is the cost of Baglamukhi Puja online at Nalkheda?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Baglamukhi Puja at Nalkheda Siddha Peeth is available across multiple tiers to suit different needs and budgets. A 45-minute basic Hawan starts from ₹5,100, a 2-hour Deep Anushthan ranges from ₹8,100 to ₹14,500, and the intensive 1.25 lakh Mantra Jaap Anushthan is ₹44,500. All packages include live Sankalp via video call, digital recording of the ritual, and couriered Prasad (Raksha Sutra and sacred items) to your address. We offer a pay-after-puja model where you book for free and only pay after verifying the puja has been performed. For court cases, enemy removal, or complex problems, the 1.25 lakh Anushthan is recommended for maximum efficacy.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">How long does Baglamukhi Anushthan take to show results?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Results from Baglamukhi Anushthan vary based on problem intensity, Sankalp clarity, and devotee receptivity. For urgent matters like imminent court hearings, results can manifest within days. For deep-rooted problems like long-pending court cases (3-5 years), chronic enemy issues, or financial crises, the full effect typically emerges over 21 to 45 days after Anushthan completion. Some devotees report feeling the shift within the first week - opponents becoming confused or apologetic, blocked opportunities suddenly opening, or adversaries disappearing from one's life. The spiritual energy created by the mantras continues to work for months after the ritual, gradually dismantling obstacles.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">Can I book Baglamukhi Puja from outside India (NRI / international)?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Absolutely. Maa Baglamukhi Guru serves devotees from 50+ countries worldwide including the USA, UK, Canada, Australia, UAE, Singapore, and Europe. The entire process works remotely: initial WhatsApp consultation, Sankalp via video call regardless of your time zone, live puja viewing from your home, video recording shared after completion, and international courier of energized Prasad (Raksha Sutra, Bhasma, sacred thread) to your doorstep. We accept international wire transfers, credit cards, and PayPal. Many NRIs book puja for family members back in India, creating a powerful spiritual bridge across continents. Basic English communication is sufficient for consultation.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">What is the Nalkheda Baglamukhi Temple and why is it special?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">The Maa Baglamukhi Temple at Nalkheda, Madhya Pradesh, is one of only three Siddha Peeths (Perfected Sacred Sites) dedicated exclusively to the Goddess in all of India. Founded by King Yudhishthira upon Lord Krishna's direct instruction during the Mahabharata era, this temple houses a self-manifested (Swayambhu) idol. The Lakhundar River flows nearby, creating a unique electromagnetic spiritual zone. What makes Nalkheda extraordinary is its unbroken vibrational continuity - the Stambhan Shakti has been present for thousands of years. Performing rituals here is equivalent to thousands of hours of practice elsewhere. Countless devotees, legal professionals, and pilgrims have sought spiritual blessings and peace of mind through this sacred site.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">Who is the best Pandit for Baglamukhi Puja at Nalkheda?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Acharya Pandit Vishnu Sharma is the principal Acharya at Nalkheda Siddha Peeth with over 26+ years of dedicated practice in Baglamukhi rituals. He comes from a family tradition of sacred ceremonies and has been guided by divine visions throughout his spiritual journey. Unlike many who perform Baglamukhi rituals casually, Acharya Sharma maintains absolute adherence to Vedic protocols - every Hawan and Anushthan is performed with proper Sankalp, authentic samagri (ritual materials), correct mantras, and the specific Stambhan methodology unique to Pitambara Sadhana. He personally reviews each case, designs the appropriate Sankalp, oversees the entire process, and provides ongoing support until results manifest. You can verify his credentials through our 500+ verified testimonials.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">What is Stambhan Shakti - the power behind Baglamukhi?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Stambhan Shakti is the divine power of Maa Baglamukhi to paralyze, freeze, and still all negative energies and harmful forces. The word "Stambhan" comes from the Sanskrit root meaning "to stop" or "to immobilize." In practice, this works on both external and internal levels. Externally, it neutralizes enemies, silences malicious gossip, confuses opponents in legal disputes, and bounces black magic back to the sender. Internally, it paralyzes our own doubts, fears, anxiety, and ego-driven negative thought patterns that create suffering. Maa Baglamukhi is depicted holding a club (mudgara) to smash delusions and pulling a demon's tongue to silence lies - this represents complete elimination of both external threats and internal obstacles. With proper Sankalp, this Stambhan energy is directed precisely toward your stated problems.</div></details>
+    </div>
+    <div class="w-1/2 space-y-4">
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">Can Baglamukhi Puja remove black magic (kala jadu)?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Baglamukhi Puja is considered the most powerful Vedic remedy for black magic (Abhichara Karma) removal. Maa Baglamukhi's Stambhan Shakti specifically targets and destroys negative occult practices aimed at devotees. When someone performs black magic against you - whether for health problems, financial ruin, relationship destruction, or general harm - the Baglamukhi Anushthan creates such an intense protective field that negative energy cannot penetrate. Remarkably, the ritual bounces harmful energy back to the sender, causing the caster to face the consequences of their own actions. Many devotees have reported dramatic improvements in health, relationships, and finances after our Anti-Black Magic Protection Puja. Symptoms like unexplained illness, chronic bad luck, sudden financial loss, or family conflicts that defy medical explanation often indicate black magic - and Baglamukhi's intervention is typically immediate.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">What is Sankalp and why is it mandatory for Baglamukhi Puja?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Sankalp (Sanskrit for "sacred vow" or "solemn intention") is the cornerstone of every Baglamukhi ritual. Acharya Pandit Vishnu Sharma always says: "A ritual without Sankalp is like an arrow without a target." When you take Sankalp, you make a conscious verbal commitment to the Goddess, stating exactly what you want achieved - whether winning a court case within 60 days, removing a specific enemy, clearing business debt, or securing a promotion. This vow creates a spiritual contract between you and Maa Baglamukhi, channeling her infinite Stambhan energy toward your precise problem. Without clear Sankalp, the ritual's energy disperses unfocusedly and results are weak. We conduct Sankalp via live video call before every puja - this ensures 100% clarity and maximizes ritual efficacy. The Sankalp is recorded and the Acharya performs the Anushthan with absolute dedication to your specific stated outcome.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">What offerings are used in Baglamukhi Puja?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Baglamukhi Puja strictly uses yellow-themed offerings as dictated by Vedic tradition for Pitambara Devi. The mandatory items include: yellow turmeric (haldi) in various forms, yellow flowers especially marigold and champa, yellow cloth for the deity's seat, yellow sweets such as besan ladoo, ghee (clarified butter) for the sacred fire (Agni), mustard seeds and grain offerings, specific herbs and roots as per the Anushthan type, sacred thread (Raksha Sutra) for devotees, and ash (Bhasma) from the Hawan. The color yellow represents turmeric - the most potent antibiotic in Vedic alchemy (Rasayana Shastra) - and signifies Maa Baglamukhi's radiant golden complexion. Brahmacharya (celibacy) and purity of intention are required from the devotee during the Sankalp period. All offerings are sourced ethically and prepared following strict Vedic protocols at Nalkheda Siddha Peeth.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">How many days does the 1.25 lakh Mantra Jaap Anushthan take?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">The 1.25 lakh (125,000) Mantra Jaap Anushthan is the most powerful and intensive Baglamukhi ritual, typically requiring 7 to 11 days to complete at Nalkheda Siddha Peeth. During this period, 5 certified Acharyas chant the Baglamukhi Maha-Mantra continuously in shifts, performing a Hawan ceremony twice daily (morning and evening). Each chanting session is recorded and shared with the devotee. The process involves: Day 1 - detailed Sankalp via video call; Days 2-10 - continuous mantra chanting with regular updates; Day 11 (or final day) - Maha Havan as the sealing ceremony followed by Prasad preparation. The accumulated spiritual energy from 125,000 mantras is immense and creates a lasting protective field. This Anushthan is recommended for critical court cases, multiple enemies, complex black magic, or when all other remedies have failed.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">Is live video proof provided during Baglamukhi Puja?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Yes, transparency is a core promise at Maa Baglamukhi Guru. Every ritual booked comes with live video evidence. Before the puja begins, we conduct your Sankalp via video call where Acharya Pandit Vishnu Sharma explains the process and takes your sacred vow. During the Anushthan or Hawan, you can join via WhatsApp video to watch the ceremony live from anywhere in the world. After completion, we share the full video recording, photographs of the Hawan, and details of all offerings made in your name. For international devotees who cannot attend physically, the live video link serves as their virtual presence. We believe spiritual services should never require blind faith - our devotees see exactly what they are paying for and trust builds through verified transparency.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">What happens after I book a Baglamukhi Puja - the complete process?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">After booking, the process unfolds in clearly defined steps: Step 1 - Within 24 hours, our team contacts you via WhatsApp to understand your concern and gather details (name, birth info if known, nature of problem, desired outcome). Step 2 - You receive a personalized consultation from Acharya Pandit Vishnu Sharma who recommends the appropriate ritual tier based on your situation. Step 3 - The Sankalp (sacred vow) is conducted via video call where you state your exact intention. Step 4 - Your puja is scheduled according to the lunar calendar and performed at Nalkheda Siddha Peeth by certified Acharyas. Step 5 - You receive live video updates and the full recording of the ritual. Step 6 - Energized Prasad (Raksha Sutra, sacred Bhasma, and other items) is couriered to your address. Step 7 - Post-puja guidance on mantra japa repetitions and ongoing support until your result manifests.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">Can Baglamukhi Puja help with business growth and financial problems?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Yes, Baglamukhi Puja is highly effective for business and financial challenges. The Vyapar Vridhi (Business Growth) Puja and Dhan Prapti (Wealth Attraction) Anushthan are specifically designed to remove financial obstacles, clear business debts, attract new opportunities, and ensure profitable operations. The way it works is profound: Maa Baglamukhi removes the "enemies" of your prosperity - these could be dishonest business partners, market sabotage, hidden competitors, or subtle negative karma creating financial blockages. With these obstacles cleared by her Stambhan Shakti, your path to wealth becomes clear and unhindered. Numerous businessmen, shopkeepers, corporate professionals, and investors have reported doubled profits, cleared debts, and unexpected business breakthroughs after the Anushthan. The 1.25 lakh Mantra Jaap is particularly recommended for severe financial crises or long-standing business stagnation.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">Is Baglamukhi Puja safe - any side effects or risks?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Baglamukhi Puja performed under qualified guidance at Nalkheda Siddha Peeth is completely safe. The Stambhan Shakti is a defensive spiritual force - it protects devotees, not harm others. When performed with proper Sankalp by trained Acharyas, the ritual creates only positive outcomes: protection, clarity, victory, and removal of obstacles. There are no negative side effects when the puja is done correctly. However, important precautions exist: Baglamukhi mantras must never be chanted without expert guidance as improper chanting can scatter energy unfocusedly; the Sankalp must be clear and genuine - no malicious intentions are entertained; devotees must maintain basic spiritual discipline during the Anushthan period (no alcohol, no non-vegetarian food, minimal onion/garlic). Our Acharya reviews every case personally and refuses to perform rituals with unethical Sankalps. The goddess rewards justice and truth - her power is meant for protection, not destruction of others for selfish gain.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">What is the difference between Baglamukhi Hawan and Anushthan?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">The key difference lies in intensity, duration, and depth of spiritual energy generated. Baglamukhi Hawan is a single-day or short-duration fire ritual lasting 45 minutes to 2 hours. It is ideal for immediate relief, quick blessings, or testing the waters before committing to intensive work. Anushthan is an intensive multi-day ritual involving continuous mantra chanting over 3 to 11 days, generating cumulative spiritual energy far greater than any single Hawan. Think of Hawan as a single powerful prayer, while Anushthan is building an unbreakable spiritual fortress. For urgent problems like an imminent court hearing next week, a Hawan may provide quick intervention. For deep-rooted issues like a 5-year pending case, chronic enemy harassment, complex black magic, or major financial crisis, the 1.25 lakh Mantra Jaap Anushthan is essential for sustainable results. The Acharya recommends the appropriate tier based on your specific situation during the initial consultation.</div></details>
+      <details class="rounded-md border border-border bg-muted"><summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[16px] font-bold [&amp;::-webkit-details-marker]:hidden">What is Vaak Siddhi and how does Baglamukhi grant this power?<iconify-icon icon="lucide:chevron-down" class="text-xl"></iconify-icon></summary><div class="px-5 pb-5 text-[15px] leading-6 text-foreground">Vaak Siddhi (आक सिद्धि) is the mystical power of speech where whatever a devotee speaks manifests into reality. Maa Baglamukhi, depicted pulling the tongue of a demon to silence lies, is the divine source of this power. When you worship her correctly, she grants clarity of speech, confidence in communication, and spiritual authority that makes your words carry weight and truth. In practical terms, Vaak Siddhi manifests as: you speak in meetings and everyone agrees with you, your arguments in court become unanswerable, your words carry persuasive power that moves people, and your declarations manifest into reality. This is why leaders, politicians, lawyers, and public speakers specifically seek Baglamukhi's blessings. The Vaak Siddhi Puja combined with the Anushthan creates such a powerful speech field that opponents find themselves unable to counter your logic. This power is alignment of your intention with divine truth, channeled through Maa Baglamukhi's Stambhan energy.</div></details>
+    </div>
+  </div>
+</section>
+<section class="bg-background text-foreground h-[834px] overflow-hidden">
+  <div class="mx-auto max-w-7xl px-5">
+    <div class="mb-16 text-center">
+      <span class="mb-3 inline-flex rounded-full bg-muted px-4 py-2 text-xs font-bold tracking-wider text-primary shadow-sm">DEVOTEE EXPERIENCES</span>
+      <h2 class="mb-3 font-serif text-5xl font-bold text-foreground md:text-6xl">Transformed<span class="text-primary">Lives</span></h2>
+      <div class="mx-auto h-1 w-20 rounded-full bg-primary"></div>
+      <p class="mt-4 text-xl text-foreground">Authentic testaments to the divine grace of Maa Baglamukhi at Nalkheda.</p>
+    </div>
+
+    <div>
+      <div class="hidden">
+        <div>
+          <article>
+            <iconify-icon icon="lucide:quote" aria-hidden="true"></iconify-icon>
+            <div>V</div>
+            <h3>Vivaan Kothari<iconify-icon icon="lucide:badge-check" aria-hidden="true"></iconify-icon></h3>
+            <p><iconify-icon icon="lucide:map-pin" aria-hidden="true"></iconify-icon>Verified Devotee</p>
+            <div><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon></div>
+            <p>"My business was struggling due to unforeseen challenges. A colleague suggested seeking guidance from Maa Baglamukhi Guru. Pandit Vishnu Sharma’s remedies and rituals helped improve my business drastically. Sales increased, and the obstacles vanished. I recommend his services to any entrepreneur. Learn more at maabaglamukhi.guru"</p>
+          </article>
+          <article>
+            <iconify-icon icon="lucide:quote" aria-hidden="true"></iconify-icon>
+            <div>A</div>
+            <h3>Arjun Baid<iconify-icon icon="lucide:badge-check" aria-hidden="true"></iconify-icon></h3>
+            <p><iconify-icon icon="lucide:map-pin" aria-hidden="true"></iconify-icon>Verified Devotee</p>
+            <div><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon></div>
+            <p>"I constantly felt drained and surrounded by negativity. Consulting Pandit Vishnu Sharma, he identified the influence of negative energy in my life. He performed a cleansing ritual, and I immediately felt lighter and more positive. His services are a blessing. to protect yourself from negativity."</p>
+          </article>
+          <article>
+            <iconify-icon icon="lucide:quote" aria-hidden="true"></iconify-icon>
+            <div>S</div>
+            <h3>Saurabh Lunawat<iconify-icon icon="lucide:badge-check" aria-hidden="true"></iconify-icon></h3>
+            <p><iconify-icon icon="lucide:map-pin" aria-hidden="true"></iconify-icon>Verified Devotee</p>
+            <div><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon><iconify-icon icon="lucide:star"></iconify-icon></div>
+            <p>"I faced stagnation in my career despite working hard for years. On visiting Pandit Vishnu Sharma, he performed specific rituals for professional success. Within weeks, I noticed positive changes – a promotion and recognition at work! His guidance is unmatched. Check his services at maabaglamukhi.guru"</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 px-2 md:grid-cols-3">
+        <article class="h-[426px] rounded-3xl border border-border bg-card p-10 text-primary-foreground shadow-sm">
+          <iconify-icon class="mb-6 text-4xl text-primary opacity-70" icon="lucide:quote" aria-hidden="true"></iconify-icon>
+          <div class="mb-7 flex items-center">
+            <div class="mr-4 flex size-12 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground shadow-sm">M</div>
+            <div>
+              <h3 class="flex items-center font-serif text-base font-bold text-card-foreground">Mohit Dugar<iconify-icon class="ml-2 text-primary" icon="lucide:badge-check" aria-hidden="true"></iconify-icon></h3>
+              <p class="mt-1 flex items-center text-sm italic text-card-foreground"><iconify-icon class="mr-1" icon="lucide:map-pin" aria-hidden="true"></iconify-icon>Verified Devotee</p>
+            </div>
+          </div>
+          <div class="mb-4 flex gap-1 text-primary">
+            <iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon>
+          </div>
+          <p class="line-clamp-5 text-[15px] italic leading-8 text-card-foreground">"I was stuck in a prolonged legal battle that drained me emotionally and financially. Seeking help from Maa Baglamukhi Guru, I was amazed at how Pandit Vishnu Sharma’s spiritual practices helped turn things in my favor. The case was resolved amicably within months. I owe it all to his expertise. or trusted spiritual help."</p>
+        </article>
+
+        <article class="h-[426px] rounded-3xl border border-border bg-card p-10 text-primary-foreground shadow-sm">
+          <iconify-icon class="mb-6 text-4xl text-primary opacity-70" icon="lucide:quote" aria-hidden="true"></iconify-icon>
+          <div class="mb-7 flex items-center">
+            <div class="mr-4 flex size-12 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground shadow-sm">K</div>
+            <div>
+              <h3 class="flex items-center font-serif text-base font-bold text-card-foreground">Keshav Laddha<iconify-icon class="ml-2 text-primary" icon="lucide:badge-check" aria-hidden="true"></iconify-icon></h3>
+              <p class="mt-1 flex items-center text-sm italic text-card-foreground"><iconify-icon class="mr-1" icon="lucide:map-pin" aria-hidden="true"></iconify-icon>Verified Devotee</p>
+            </div>
+          </div>
+          <div class="mb-4 flex gap-1 text-primary">
+            <iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon>
+          </div>
+          <p class="line-clamp-5 text-[15px] italic leading-8 text-card-foreground">"After months of misunderstandings and conflicts with my spouse, I approached Pandit Vishnu Sharma. His remedies and the ritual for harmony worked wonders in restoring peace and love in my marriage. I’m forever grateful for his wisdom and dedication. To anyone facing relationship issues, I highly recommend checking out maabaglamukhi.guru"</p>
+        </article>
+
+        <article class="h-[426px] rounded-3xl border border-border bg-card p-10 text-primary-foreground shadow-sm">
+          <iconify-icon class="mb-6 text-4xl text-primary opacity-70" icon="lucide:quote" aria-hidden="true"></iconify-icon>
+          <div class="mb-7 flex items-center">
+            <div class="mr-4 flex size-12 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground shadow-sm">A</div>
+            <div>
+              <h3 class="flex items-center font-serif text-base font-bold text-card-foreground">Aarav Bhansali<iconify-icon class="ml-2 text-primary" icon="lucide:badge-check" aria-hidden="true"></iconify-icon></h3>
+              <p class="mt-1 flex items-center text-sm italic text-card-foreground"><iconify-icon class="mr-1" icon="lucide:map-pin" aria-hidden="true"></iconify-icon>Verified Devotee</p>
+            </div>
+          </div>
+          <div class="mb-4 flex gap-1 text-primary">
+            <iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon><iconify-icon icon="lucide:star" aria-hidden="true"></iconify-icon>
+          </div>
+          <p class="line-clamp-5 text-[15px] italic leading-8 text-card-foreground">"I was facing severe financial problems and was on the verge of losing hope. A friend suggested consulting Pandit Vishnu Sharma at Maa Baglamukhi Guru. He listened to my problems patiently and performed a powerful ritual to remove obstacles. Within three months, I secured a stable job and my finances improved drastically. His guidance is truly divine! You can reach out to him at maabaglamukhi.guru for life-changing solutions."</p>
+        </article>
+      </div>
+
+      <div class="mt-12 flex justify-center gap-3">
+        <button type="button" aria-label="Previous Testimonial" class="flex size-12 items-center justify-center rounded-full border border-border bg-muted text-primary-foreground shadow-sm"><iconify-icon icon="lucide:chevron-left" aria-hidden="true"></iconify-icon></button>
+        <button type="button" aria-label="Next Testimonial" class="flex size-12 items-center justify-center rounded-full border border-border bg-muted text-primary-foreground shadow-sm"><iconify-icon icon="lucide:chevron-right" aria-hidden="true"></iconify-icon></button>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="h-[310px] bg-background text-foreground text-center overflow-hidden">
+  <div class="mx-auto max-w-[620px]">
+    <div class="flex items-center justify-center gap-3 text-[11px] font-semibold uppercase tracking-[0.32em] text-primary">
+      <span class="size-1.5 rounded-full bg-primary"></span>
+      <span>Divine Knowledge</span>
+      <span class="size-1.5 rounded-full bg-primary"></span>
+    </div>
+    <h2 class="mt-6 text-6xl font-bold leading-[1.08] tracking-tight">
+      Maa Baglamukhi<br>
+      <span class="text-primary">The Stambhan Shakti</span>
+    </h2>
+    <div class="mt-7 flex items-center justify-center gap-3 text-primary">
+      <span class="h-px w-18 bg-primary/40"></span>
+      <span class="text-sm leading-none">☩</span>
+      <span class="h-px w-18 bg-primary/40"></span>
+    </div>
+    <p class="mx-auto mt-7 max-w-[620px] text-base leading-7 text-foreground">
+      Discover the ancient science of divine victory through the sacred rituals performed at the historic Nalkheda Siddha Peeth.
+    </p>
+  </div>
+</section>
+<section class="h-[561px] w-full bg-background py-1 text-foreground">
+  <div class="mx-auto grid h-[553px] w-full grid-cols-4 gap-7">
+    <article class="flex h-full flex-col rounded-2xl border border-border bg-card p-7 text-card-foreground">
+      <div class="flex size-15 items-center justify-center rounded-2xl border border-primary/40 bg-muted text-primary">
+        <iconify-icon class="text-3xl" icon="lucide:layers"></iconify-icon>
+      </div>
+      <div class="pt-6">
+        <h3 class="text-lg font-bold leading-5">What is Maa<br>Baglamukhi Puja?</h3>
+        <p class="mt-5 text-[15px] leading-[26px] text-card-foreground">Maa Baglamukhi Puja is a powerful Vedic ritual dedicated to Goddess Baglamukhi, the eighth of the ten Mahavidyas. Known as<a class="font-semibold text-primary underline" href="/about-maa-baglamukhi">Pitambara Devi</a>and the<a class="font-semibold text-primary underline" href="/stambhan-shakti">Stambhan Shakti</a>, she has the divine power to paralyze enemies, win court cases, remove black magic, and grant victory in all conflicts.</p>
+      </div>
+      <div class="mt-auto border-t border-border pt-5">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-muted px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary"><iconify-icon icon="lucide:circle-play"></iconify-icon>Vedic Ritual</span>
+      </div>
+    </article>
+
+    <article class="flex h-full flex-col rounded-2xl border border-border bg-card p-7 text-card-foreground">
+      <div class="flex size-15 items-center justify-center rounded-2xl border border-primary/40 bg-muted text-primary">
+        <iconify-icon class="text-3xl" icon="lucide:house"></iconify-icon>
+      </div>
+      <div class="pt-6">
+        <h3 class="text-lg font-bold leading-5">Why is Nalkheda the<br>Most Powerful Seat?</h3>
+        <p class="mt-5 text-[15px] leading-[26px] text-card-foreground">Nalkheda in Madhya Pradesh is one of the three primary<a class="font-semibold text-primary underline" href="/siddha-peeth">Siddha Peeths</a>of Maa Baglamukhi in India. The temple is a self-manifested (swayambhu) shakti peeth, where the goddess's divine energy is at its highest potency. Rituals performed here yield results with unmatched speed and certainty.</p>
+      </div>
+      <div class="mt-auto border-t border-border pt-5">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-muted px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary"><iconify-icon icon="lucide:map-pin"></iconify-icon>Siddha Peeth</span>
+      </div>
+    </article>
+
+    <article class="flex h-full flex-col rounded-2xl border border-border bg-card p-7 text-card-foreground">
+      <div class="flex size-15 items-center justify-center rounded-2xl border border-primary/40 bg-muted text-primary">
+        <iconify-icon class="text-3xl" icon="lucide:smartphone"></iconify-icon>
+      </div>
+      <div class="pt-6">
+        <h3 class="text-lg font-bold leading-5">Can Baglamukhi<br>Puja Be Done Online?</h3>
+        <p class="mt-5 text-[15px] leading-[26px] text-card-foreground">Yes. Through our authenticated online puja service, Acharya Vishnu Sharma performs the complete ritual at Nalkheda Siddha Peeth on your behalf. Receive a<a class="font-semibold text-primary underline" href="/online-puja-service">live video link</a>to participate in real-time, a full HD recording, and Prasad couriered worldwide.</p>
+      </div>
+      <div class="mt-auto border-t border-border pt-5">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-muted px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary"><iconify-icon icon="lucide:video"></iconify-icon>Online Puja</span>
+      </div>
+    </article>
+
+    <article class="flex h-full flex-col rounded-2xl border border-border bg-card p-7 text-card-foreground">
+      <div class="flex size-15 items-center justify-center rounded-2xl border border-primary/40 bg-muted text-primary">
+        <iconify-icon class="text-3xl" icon="lucide:star"></iconify-icon>
+      </div>
+      <div class="pt-6">
+        <h3 class="text-lg font-bold leading-5">What are the Main<br>Benefits of this Puja?</h3>
+        <p class="mt-5 text-[15px] leading-[26px] text-card-foreground">Rituals at Nalkheda provide protection against<a class="font-semibold text-primary underline" href="/shatru-vinash-puja">enemies</a>, victory in legal matters,<a class="font-semibold text-primary underline" href="/black-magic-removal-puja">removal of black magic</a>, and success in business and political ventures. 26+ years of specialized practice ensure mantras are channeled with absolute precision.</p>
+      </div>
+      <div class="mt-auto border-t border-border pt-5">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-muted px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary"><iconify-icon icon="lucide:heart"></iconify-icon>Sacred Benefits</span>
+      </div>
+    </article>
+  </div>
+</section>
+<section class="relative overflow-hidden bg-background text-foreground py-[55px]">
+  <div class="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+    <div class="h-72 w-72 rounded-full bg-primary/15 blur-3xl"></div>
+  </div>
+  <div class="relative mx-auto flex min-h-[339px] w-full max-w-[700px] flex-col items-center justify-center rounded-2xl bg-primary px-8 py-10 text-center text-primary-foreground shadow-lg">
+    <div class="mb-7 flex w-full items-center justify-center gap-3">
+      <span class="h-px w-12 bg-primary-foreground/50"></span>
+      <span class="text-sm font-semibold tracking-wide">ॐ Sacred Beej Mantra</span>
+      <span class="h-px w-12 bg-primary-foreground/50"></span>
+    </div>
+
+    <p class="text-2xl font-semibold leading-relaxed sm:text-[26px]">
+      ॐ ह्लीं बगलामुखि सर्वदुष्टानां वाचं मुखं पदं स्तम्भय ।<br>
+      जिव्हां कीलय बुद्धिं विनाशय ह्लीं ॐ स्वाहा ॥
+    </p>
+
+    <div class="mt-6 flex max-w-[600px] items-start justify-center gap-2 text-sm leading-6 text-primary-foreground/80">
+      <iconify-icon icon="lucide:quote" class="mt-0.5 shrink-0 text-base"></iconify-icon>
+      <p>"O Maa Baglamukhi, paralyse the speech, feet, and intellect of all evil-doers. Protect your devotee with your divine power."</p>
+    </div>
+
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-x-7 gap-y-4">
+      <a href="/baglamukhi-beej-mantra" class="inline-flex items-center gap-2 border-b border-primary-foreground/60 pb-1 text-sm font-semibold text-primary-foreground">
+        Learn the Full Mantra
+        <iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon>
+      </a>
+      <a href="tel:+917389567650" class="inline-flex items-center gap-2 text-sm font-semibold text-primary-foreground">
+        <iconify-icon icon="lucide:phone" class="text-base"></iconify-icon>
+        +91 73895 67650
+      </a>
+    </div>
+  </div>
+</section>
+<section class="h-24 bg-primary text-primary-foreground">
+  <div class="mb-5 text-center">
+    <h2 class="text-3xl font-semibold leading-tight text-accent">Divine<span class="text-primary-foreground">Knowledge Blog</span></h2>
+    <p class="text-base text-primary-foreground/75">Learn about ancient rituals and spiritual wisdom</p>
+  </div>
+</section>
+<section class="h-[1066px] bg-primary text-primary-foreground">
+  <div class="mx-auto h-full w-full max-w-[1200px]">
+    <div class="grid h-full grid-cols-3 grid-rows-2 gap-6">
+      <article class="flex h-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground">
+        <div class="aspect-video overflow-hidden">
+          <img src="https://pub-9c03c0a6896b41bc89360f099df86b50.r2.dev/blog/Maa_Baglamukhi_Puja_Guide_Shrine_1792771760_f0f921fd.png" class="h-full w-full object-cover" alt="Maa Baglamukhi Puja Cost in Nalkheda: Havan Types, Vidhi, Duration &amp; Booking Guide">
+        </div>
+        <div class="flex flex-grow flex-col p-6">
+          <h3 class="mb-3 text-xl font-bold leading-snug">Maa Baglamukhi Puja Cost in Nalkheda: Havan Types, Vidhi, Duration &amp; Booking Guide</h3>
+          <p class="mb-6 text-sm leading-relaxed text-card-foreground">Planning a Maa Baglamukhi Puja in Nalkheda? Understand the puja cost factors, Havan types, tradition...</p>
+          <div class="mt-auto">
+            <a href="/blog/maa-baglamukhi-puja-cost-nalkheda" class="inline-flex rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground">Read Article</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="flex h-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground">
+        <div class="aspect-video overflow-hidden">
+          <img src="https://pub-9c03c0a6896b41bc89360f099df86b50.r2.dev/blog/Maa_Baglamukhi_Navratri_Hawan_Guide_1791616338_e2cf606a.png" class="h-full w-full object-cover" alt="Maa Baglamukhi Navratri Hawan for Court Cases, Enemy Protection &amp; Debt Relief: Nalkheda Siddhapeeth Guide 2026">
+        </div>
+        <div class="flex flex-grow flex-col p-6">
+          <h3 class="mb-3 text-xl font-bold leading-snug">Maa Baglamukhi Navratri Hawan for Court Cases, Enemy Protection &amp; Debt Relief: Nalkheda Siddhapeeth Guide 2026</h3>
+          <p class="mb-6 text-sm leading-relaxed text-card-foreground">Navigating severe legal disputes, persistent hostility, or overwhelming financial debt can leave ind...</p>
+          <div class="mt-auto">
+            <a href="/blog/maa-baglamukhi-navratri-hawan-court-cases-protection-nalkheda-2026" class="inline-flex rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground">Read Article</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="flex h-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground">
+        <div class="aspect-video overflow-hidden">
+          <img src="https://pub-9c03c0a6896b41bc89360f099df86b50.r2.dev/blog/Navratri_Akhand_Jyoti_Rules_2026_1791615676_afc2f09e.png" class="h-full w-full object-cover" alt="Navratri Akhand Jyoti Rules 2026: Vidhi, Direction, Ghee vs Oil &amp; What to Do if the Flame Extinguishes?">
+        </div>
+        <div class="flex flex-grow flex-col p-6">
+          <h3 class="mb-3 text-xl font-bold leading-snug">Navratri Akhand Jyoti Rules 2026: Vidhi, Direction, Ghee vs Oil &amp; What to Do if the Flame Extinguishes?</h3>
+          <p class="mb-6 text-sm leading-relaxed text-card-foreground">Lighting an Akhand Jyoti during Navratri 2026 brings Goddess Durga’s divine protection and prosper...</p>
+          <div class="mt-auto">
+            <a href="/blog/navratri-akhand-jyoti-rules-2026" class="inline-flex rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground">Read Article</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="flex h-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground">
+        <div class="aspect-video overflow-hidden">
+          <img src="https://pub-9c03c0a6896b41bc89360f099df86b50.r2.dev/blog/shardiya-navratri-2026-which-day-is-best-for-maa-baglamukhi-puja_1791273838_56af3ac5.png" class="h-full w-full object-cover" alt="Shardiya Navratri 2026: Which Day Is Best for Maa Baglamukhi Puja?">
+        </div>
+        <div class="flex flex-grow flex-col p-6">
+          <h3 class="mb-3 text-xl font-bold leading-snug">Shardiya Navratri 2026: Which Day Is Best for Maa Baglamukhi Puja?</h3>
+          <p class="mb-6 text-sm leading-relaxed text-card-foreground">Which day is best for Maa Baglamukhi Puja during Shardiya Navratri 2026? Explore the significance of...</p>
+          <div class="mt-auto">
+            <a href="/blog/shardiya-navratri-2026-which-day-is-best-for-maa-baglamukhi-puja" class="inline-flex rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground">Read Article</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="flex h-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground">
+        <div class="aspect-video overflow-hidden">
+          <img src="https://pub-9c03c0a6896b41bc89360f099df86b50.r2.dev/blog/navratri-2026-at-nalkheda-travel-darshan-puja-booking_1790854280_065bdef3.png" class="h-full w-full object-cover" alt="Navratri 2026 at Nalkheda: Temple Visit, Travel Guide, Darshan &amp; Puja Booking">
+        </div>
+        <div class="flex flex-grow flex-col p-6">
+          <h3 class="mb-3 text-xl font-bold leading-snug">Navratri 2026 at Nalkheda: Temple Visit, Travel Guide, Darshan &amp; Puja Booking</h3>
+          <p class="mb-6 text-sm leading-relaxed text-card-foreground">Planning to visit Maa Baglamukhi Temple in Nalkheda during Navratri 2026? Explore travel routes, Dar...</p>
+          <div class="mt-auto">
+            <a href="/blog/navratri-2026-at-nalkheda-travel-darshan-puja-booking" class="inline-flex rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground">Read Article</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="flex h-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground">
+        <div class="aspect-video overflow-hidden">
+          <img src="https://pub-9c03c0a6896b41bc89360f099df86b50.r2.dev/blog/navratri-2026-for-nri-devotees-online-puja-booking_1790853177_2c6caf56.png" class="h-full w-full object-cover" alt="Navratri 2026 for NRI Devotees: Online Puja, Booking &amp; Sankalp Guide">
+        </div>
+        <div class="flex flex-grow flex-col p-6">
+          <h3 class="mb-3 text-xl font-bold leading-snug">Navratri 2026 for NRI Devotees: Online Puja, Booking &amp; Sankalp Guide</h3>
+          <p class="mb-6 text-sm leading-relaxed text-card-foreground">Living outside India and want to arrange Maa Baglamukhi Puja during Navratri 2026? Learn how NRI dev...</p>
+          <div class="mt-auto">
+            <a href="/blog/navratri-2026-for-nri-devotees-online-puja-booking" class="inline-flex rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground">Read Article</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+<section class="flex h-[218px] w-full flex-col bg-primary text-primary-foreground">
+  <div class="h-px w-full bg-primary-foreground/25"></div>
+  <div class="flex flex-1 flex-col items-center justify-center gap-6">
+    <nav class="flex items-center gap-2" aria-label="Pagination">
+      <span class="flex items-center gap-1 px-3 py-2 text-sm text-muted-foreground/40">
+        <iconify-icon icon="lucide:chevron-left" aria-hidden="true"></iconify-icon>
+        Prev
+      </span>
+      <a href="?blog_page=1#blog" class="flex size-10 items-center justify-center rounded-full bg-card text-sm font-medium text-card-foreground" aria-label="Page 1">1</a>
+      <a href="?blog_page=2#blog" class="flex size-10 items-center justify-center rounded-full text-sm text-primary-foreground transition-colors hover:bg-primary-foreground/10" aria-label="Page 2">2</a>
+      <span class="flex size-10 items-center justify-center text-sm text-primary-foreground">...</span>
+      <a href="?blog_page=41#blog" class="flex size-10 items-center justify-center rounded-full text-sm text-primary-foreground transition-colors hover:bg-primary-foreground/10">41</a>
+      <a href="?blog_page=2#blog" class="flex items-center gap-1 px-3 py-2 text-sm text-primary-foreground" aria-label="Next Page">
+        Next
+        <iconify-icon icon="lucide:chevron-right" aria-hidden="true"></iconify-icon>
+      </a>
+    </nav>
+    <p class="text-sm text-primary-foreground/70">Page 1 of 41</p>
+  </div>
+</section>
+<section class="h-26 bg-primary text-primary-foreground text-center">
+  <div class="mt-5">
+    <a href="/blogs" class="inline-flex items-center gap-2 border border-primary-foreground px-5 py-3 text-sm font-semibold tracking-wide text-primary-foreground">
+      VIEW ALL SPIRITUAL ARTICLES
+      <iconify-icon icon="lucide:arrow-right" class="text-base"></iconify-icon>
+    </a>
+  </div>
+</section>
+<section id="footer-cta" class="bg-primary py-20 text-primary-foreground">
+  <div class="mx-auto w-full max-w-300 px-6">
+    <div class="mx-auto rounded-3xl border border-border bg-card p-10 text-center text-card-foreground shadow-lg">
+      <h2 class="mb-2 text-4xl font-bold tracking-tight text-card-foreground">Talk directly with Baglamukhi Guru</h2>
+      <p class="mb-4 text-xl text-card-foreground">Get free guidance before booking your puja</p>
+
+      <div class="mt-2 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <a href="tel:+917389567650" class="flex min-h-20 items-center justify-center gap-4 rounded-xl bg-secondary px-6 py-4 text-secondary-foreground shadow-md transition-opacity hover:opacity-90">
+          <iconify-icon icon="lucide:phone-call" class="text-3xl"></iconify-icon>
+          <span class="flex flex-col text-left leading-tight">
+            <span class="text-sm font-bold">Call Now</span>
+            <span class="mt-1 text-sm">+91 73895 67650</span>
+          </span>
+        </a>
+
+        <a href="https://wa.me/917389567650?text=I%20want%20to%20book%20a%20puja" target="_blank" class="flex min-h-20 items-center justify-center gap-4 rounded-xl bg-muted px-6 py-4 text-muted-foreground shadow-md transition-opacity hover:opacity-90">
+          <iconify-icon icon="lucide:message-circle" class="text-3xl"></iconify-icon>
+          <span class="flex flex-col text-left leading-tight">
+            <span class="text-sm font-bold text-foreground">WHATSAPP</span>
+            <span class="mt-1 text-sm text-foreground">Instant Booking</span>
+          </span>
+        </a>
+
+        <a href="https://wa.me/917389567650?text=Request%20Call%20Back" target="_blank" class="flex min-h-20 items-center justify-center gap-4 rounded-xl border border-border bg-transparent px-6 py-4 text-primary-foreground shadow-md transition-opacity hover:opacity-90">
+          <iconify-icon icon="lucide:messages-square" class="text-3xl text-secondary"></iconify-icon>
+          <span class="flex flex-col text-left leading-tight">
+            <span class="text-sm font-bold text-card-foreground">CALL BACK</span>
+            <span class="mt-1 text-sm text-card-foreground">Request Guidance</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm text-primary-foreground">
+        <span class="flex items-center gap-2 text-card-foreground">
+          <span class="inline-flex items-center justify-center">
+            <iconify-icon icon="lucide:lock-keyhole" class="text-lg text-secondary"></iconify-icon>
+          </span>
+          Privacy Guaranteed
+        </span>
+        <span class="flex items-center gap-2 text-card-foreground">
+          <span class="inline-flex items-center justify-center">
+            <iconify-icon icon="lucide:badge-check" class="text-lg text-secondary"></iconify-icon>
+          </span>
+          Verified Credentials
+        </span>
+        <span class="flex items-center gap-2 text-card-foreground">
+          <span class="inline-flex items-center justify-center">
+            <iconify-icon icon="lucide:zap" class="text-lg text-secondary"></iconify-icon>
+          </span>
+          Quick Response
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="h-[882px] bg-primary text-primary-foreground">
+  <div class="mx-auto max-w-[1200px] px-5">
+    <div class="grid grid-cols-1 gap-x-10 gap-y-10 md:grid-cols-2 lg:grid-cols-4">
+      <div class="text-left">
+        <img src="https://maabaglamukhi.guru/images/logo.png" alt="Maa Baglamukhi Guru" class="mb-6 h-auto w-44">
+        <p class="mb-6 text-sm leading-6 text-primary-foreground/70">India's premier sanctuary for authentic Baglamukhi rituals at the holy Nalkheda Siddha Peeth.</p>
+        <div class="space-y-2">
+          <p class="flex items-center text-sm text-primary-foreground/70">
+            <iconify-icon icon="lucide:badge-check" class="mr-3 text-primary-foreground"></iconify-icon>
+            26+ Years Serving Devotees
+          </p>
+          <p class="flex items-center text-sm text-primary-foreground/70">
+            <iconify-icon icon="lucide:globe-2" class="mr-3 text-primary-foreground"></iconify-icon>
+            50+ Countries Worldwide
+          </p>
+          <p class="flex items-center text-sm text-primary-foreground/70">
+            <iconify-icon icon="lucide:star" class="mr-3 text-primary-foreground"></iconify-icon>
+            4.8/5 from 448+ Reviews
+          </p>
+        </div>
+        <div class="mt-6 flex items-center gap-3">
+          <a href="https://www.facebook.com/maabaglamukhiguru" aria-label="Facebook" class="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/30 text-primary-foreground">
+            <iconify-icon icon="lucide:facebook" class="text-lg"></iconify-icon>
+          </a>
+          <a href="https://www.instagram.com/maabaglamukhiguru" aria-label="Instagram" class="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/30 text-primary-foreground">
+            <iconify-icon icon="lucide:instagram" class="text-lg"></iconify-icon>
+          </a>
+          <a href="https://www.youtube.com/@maabaglamukhiguru" aria-label="YouTube" class="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/30 text-primary-foreground">
+            <iconify-icon icon="lucide:youtube" class="text-lg"></iconify-icon>
+          </a>
+          <a href="https://wa.me/917389567650" aria-label="WhatsApp" class="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/30 text-primary-foreground">
+            <iconify-icon icon="fa6-brands:whatsapp" class="text-lg"></iconify-icon>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="mb-5 text-lg font-bold">Puja Services</h3>
+        <div class="flex flex-col items-start gap-3 text-sm">
+          <a href="/baglamukhi-havan/" class="text-primary-foreground/75">Baglamukhi Hawan</a>
+          <a href="/baglamukhi-anushthan/" class="text-primary-foreground/75">Anushthan (11 Days)</a>
+          <a href="/shatru-vinash-puja/" class="text-primary-foreground/75">Shatru Vinash Puja</a>
+          <a href="/court-case-puja" class="text-primary-foreground/75">Court Case Victory</a>
+          <a href="/vyapar-vriddhi-puja/" class="text-primary-foreground/75">Vyapar Vridhi</a>
+          <a href="/political-success-puja/" class="text-primary-foreground/75">Political Success</a>
+          <a href="/services/" class="font-bold text-primary-foreground">Explore All Services →</a>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="mb-5 text-lg font-bold">Sacred Knowledge</h3>
+        <div class="flex flex-col items-start gap-3 text-sm">
+          <a href="/baglamukhi-chalisa" class="text-primary-foreground/75">Baglamukhi Chalisa</a>
+          <a href="/baglamukhi-kavach" class="text-primary-foreground/75">Baglamukhi Kavach</a>
+          <a href="/baglamukhi-beej-mantra" class="text-primary-foreground/75">Beej Mantra Guide</a>
+          <a href="/maa-baglamukhi-aarti" class="text-primary-foreground/75">Aarti &amp; Mantras</a>
+          <a href="/baglamukhi-mantra-for-court-case" class="text-primary-foreground/75">Court Case Mantra</a>
+          <a href="/baglamukhi-mantra-for-success" class="text-primary-foreground/75">Success Mantra</a>
+          <a href="/shardiya-navratri" class="flex items-center font-bold text-primary-foreground">
+            <iconify-icon icon="lucide:calendar-days" class="mr-2"></iconify-icon>Navratri 2026 Hub
+          </a>
+          <a href="/locations" class="flex items-center font-bold text-primary-foreground">
+            <iconify-icon icon="lucide:map-pin" class="mr-2"></iconify-icon>Global Locations Hub
+          </a>
+          <a href="/sitemap-page" class="flex items-center font-bold text-primary-foreground">
+            <iconify-icon icon="lucide:network" class="mr-2"></iconify-icon>Website Sitemap
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="mb-5 text-lg font-bold">Connect With Us</h3>
+        <div class="flex flex-col items-start text-sm">
+          <a href="tel:+917389567650" class="mb-4 flex items-center text-primary-foreground/75">
+            <iconify-icon icon="lucide:phone-call" class="mr-3 text-primary-foreground"></iconify-icon>+91 73895 67650
+          </a>
+          <a href="mailto:contact@maabaglamukhi.guru" class="mb-4 flex items-center text-primary-foreground/75">
+            <iconify-icon icon="lucide:mail" class="mr-3 text-primary-foreground"></iconify-icon>contact@maabaglamukhi.guru
+          </a>
+          <a href="/baglamukhi-mandir-nalkheda" class="flex items-center text-primary-foreground/75">
+            <iconify-icon icon="lucide:map-pin" class="mr-3 text-primary-foreground"></iconify-icon>Nalkheda Shaktipeeth, India
+          </a>
+        </div>
+        <div class="mt-8">
+          <p class="mb-3 text-xs font-bold tracking-wide text-primary-foreground">SECURE SPIRITUAL BOOKING</p>
+          <div class="mb-4 flex items-center gap-2">
+            <img src="https://maabaglamukhi.guru/images/Visa.svg" alt="Visa" class="h-7 w-auto rounded">
+            <img src="https://maabaglamukhi.guru/images/Visa-1.svg" alt="Mastercard" class="h-7 w-auto rounded">
+            <img src="https://maabaglamukhi.guru/images/Visa-4.svg" alt="GPay" class="h-7 w-auto rounded">
+            <img src="https://maabaglamukhi.guru/images/Visa-6.svg" alt="UPI" class="h-7 w-auto rounded">
+          </div>
+          <div class="flex flex-wrap gap-x-3 gap-y-2 text-xs text-primary-foreground/70">
+            <a href="/privacypolicy">Privacy Policy</a>
+            <a href="/termscondition">Terms</a>
+            <a href="/refund-cancellation">Refund Policy</a>
+            <a href="/editorial-policy">Editorial</a>
+            <a href="/sitemap-page">Sitemap</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="my-10 border-primary-foreground/10">
+
+    <div class="mx-auto mb-4 max-w-5xl text-center">
+      <p class="text-sm leading-6 text-primary-foreground/70">Spiritual &amp; Scriptural Disclaimer:All mantras, pujas, Havans, and rituals described on this website are traditional Hindu devotional practices rooted in Vedic scriptures and faith. No guaranteed results, definitive cures, or specific outcomes are promised. Devotional practices are intended for spiritual peace and mental fortitude, and should complement, never replace, qualified medical treatment, professional legal counsel, or financial planning.</p>
+    </div>
+
+    <div class="text-center">
+      <p class="text-sm">© 2026maabaglamukhi.guru| Sacred Covenant | Developed by<a href="https://www.biharinnovation.in/" target="_blank" class="ml-1 text-primary-foreground">Bihar Innovation</a></p>
+    </div>
+  </div>
+</section>
+</div>
+</body></html>
